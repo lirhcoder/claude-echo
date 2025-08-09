@@ -1,0 +1,301 @@
+# Claude Code Adapter Configuration
+# This configuration file defines settings for the Claude Code integration
+# and voice-driven programming capabilities
+
+claude_code:
+  # MCP Connection Settings
+  mcp:
+    enabled: true
+    server_host: "localhost"
+    server_port: 8080
+    timeout: 30  # seconds
+    max_retries: 3
+    connection_timeout: 10  # seconds
+    heartbeat_interval: 30  # seconds
+    
+  # Code Generation Settings
+  code_generation:
+    default_language: "auto_detect"  # auto_detect, python, javascript, typescript, etc.
+    coding_style: "standard"  # standard, google, pep8, airbnb
+    include_comments: true
+    include_type_hints: true  # For Python and TypeScript
+    include_docstrings: true
+    add_error_handling: false  # Auto-add try/catch blocks
+    generate_tests: false  # Auto-generate unit tests
+    
+    # Template settings
+    templates:
+      use_custom_templates: true
+      template_directory: "./templates/code"
+      fallback_to_default: true
+    
+    # AI-assisted settings
+    ai_assistance:
+      enabled: true
+      model_preference: "claude-3-sonnet"  # claude-3-sonnet, claude-3-haiku
+      context_window: 100000  # tokens
+      max_generation_tokens: 4000
+      temperature: 0.1  # Lower for more consistent code
+      
+  # File Operation Settings
+  file_operations:
+    auto_backup: true
+    backup_directory: "./.voice-assistant-backups"
+    backup_max_files: 100
+    max_file_size: "10MB"
+    encoding: "utf-8"
+    
+    # Auto-formatting
+    auto_format_on_save: true
+    formatters:
+      python: "black"  # black, autopep8, yapf
+      javascript: "prettier"
+      typescript: "prettier"
+      java: "google-java-format"
+      cpp: "clang-format"
+      
+    # Auto-save settings
+    auto_save: true
+    auto_save_interval: 5  # seconds
+    
+  # Project Integration Settings
+  project_integration:
+    auto_detect_framework: true
+    supported_frameworks:
+      - "react"
+      - "vue"
+      - "angular" 
+      - "django"
+      - "flask"
+      - "express"
+      - "spring-boot"
+      - "laravel"
+      - "rails"
+    
+    # Project structure analysis
+    analyze_on_startup: true
+    cache_analysis: true
+    analysis_cache_ttl: 3600  # seconds
+    
+    # Dependency management
+    auto_install_dependencies: false  # Requires user confirmation
+    package_managers:
+      python: "pip"  # pip, conda, poetry
+      javascript: "npm"  # npm, yarn, pnpm
+      java: "maven"  # maven, gradle
+      php: "composer"
+      ruby: "bundle"
+    
+  # Security Settings
+  security:
+    # Allowed operations (whitelist approach)
+    allowed_operations:
+      - "read"
+      - "write"
+      - "create"
+      - "format"
+      - "lint"
+      - "analyze"
+      - "build"
+      - "test"
+      
+    # Restricted operations (blacklist approach)
+    restricted_operations:
+      - "delete_system_files"
+      - "modify_permissions"
+      - "network_requests"
+      - "system_admin"
+      
+    # Operations requiring user confirmation
+    require_confirmation:
+      - "delete_file"
+      - "refactor_large_file"  # > 500 lines
+      - "mass_file_operations"  # > 10 files
+      - "system_command"
+      - "git_force_operations"
+      
+    # File protection
+    protected_files:
+      - ".git/**"
+      - "package.json"
+      - "requirements.txt"
+      - "pyproject.toml"
+      - "Cargo.toml"
+      - "pom.xml"
+      - "*.env"
+      - "*.key"
+      - "*.pem"
+      
+    # Command restrictions
+    dangerous_commands:
+      - "rm -rf"
+      - "sudo"
+      - "chmod 777"
+      - "dd if="
+      - ":(){ :|:& };:"
+      - "> /dev/"
+      
+  # Voice Recognition Optimization
+  speech:
+    # Programming vocabulary enhancement
+    code_vocabulary: true
+    load_custom_vocabulary: true
+    custom_vocabulary_file: "./config/programming_vocabulary.txt"
+    
+    # Abbreviation expansion
+    abbreviation_expansion: true
+    abbreviations:
+      "func": "function"
+      "var": "variable"
+      "const": "constant"
+      "param": "parameter"
+      "arg": "argument"
+      "ret": "return"
+      "impl": "implement"
+      "init": "initialize"
+      "config": "configuration"
+      "auth": "authentication"
+      "db": "database"
+      "api": "application programming interface"
+      
+    # Punctuation inference for code
+    punctuation_inference: true
+    auto_punctuation:
+      - "semicolon"
+      - "comma"
+      - "parentheses"
+      - "brackets"
+      - "braces"
+      
+    # Context-aware recognition
+    context_awareness: true
+    programming_context_boost: 1.5  # Boost programming term recognition
+    
+  # Tool Integration Settings
+  tools:
+    # Git integration
+    git:
+      enabled: true
+      auto_stage_generated_files: false
+      default_commit_template: "feat: {description}\n\n🤖 Generated with Claude Voice Assistant"
+      push_after_commit: false
+      
+    # Testing frameworks
+    testing:
+      auto_detect_framework: true
+      frameworks:
+        python: ["pytest", "unittest", "nose"]
+        javascript: ["jest", "mocha", "jasmine"]
+        java: ["junit", "testng"]
+        
+      # Test generation
+      generate_tests: false  # Manual trigger only
+      test_coverage_target: 80  # percent
+      
+    # Linting and formatting
+    quality:
+      auto_lint: false  # Run linter after code generation
+      auto_format: true  # Run formatter after code generation
+      
+      linters:
+        python: "pylint"  # pylint, flake8, pycodestyle
+        javascript: "eslint"
+        typescript: "tslint"
+        java: "checkstyle"
+        
+    # Build tools
+    build:
+      auto_detect_build_tool: true
+      build_tools:
+        python: ["setuptools", "poetry", "pipenv"]
+        javascript: ["webpack", "rollup", "vite"]
+        java: ["maven", "gradle"]
+        
+  # Performance Settings
+  performance:
+    # Caching
+    enable_caching: true
+    cache_directory: "./.voice-assistant-cache"
+    cache_max_size: "500MB"
+    cache_ttl: 86400  # seconds (24 hours)
+    
+    # Processing limits
+    max_concurrent_operations: 5
+    operation_timeout: 120  # seconds
+    large_file_threshold: 10000  # lines
+    
+    # Memory management
+    max_memory_usage: "1GB"
+    garbage_collection_interval: 300  # seconds
+    
+  # Logging and Monitoring
+  logging:
+    level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+    file: "./logs/claude_code_adapter.log"
+    max_file_size: "50MB"
+    backup_count: 5
+    
+    # Metrics collection
+    collect_metrics: true
+    metrics_file: "./logs/claude_code_metrics.json"
+    metrics_interval: 60  # seconds
+    
+    # Event logging
+    log_voice_commands: true
+    log_code_generation: true
+    log_file_operations: true
+    log_errors: true
+    
+  # Development Settings
+  development:
+    # Debug mode
+    debug_mode: false
+    verbose_logging: false
+    
+    # Development tools
+    hot_reload: true
+    auto_restart_on_config_change: true
+    
+    # Testing
+    enable_test_mode: false
+    mock_mcp_connection: true  # For development without Claude Code
+    simulate_delays: false  # Add artificial delays for testing
+    
+# Integration with main system
+system_integration:
+  # Event system integration
+  events:
+    emit_code_generation_events: true
+    emit_file_operation_events: true
+    emit_performance_events: true
+    
+  # Context sharing
+  context:
+    share_with_other_adapters: true
+    context_sync_interval: 30  # seconds
+    
+  # Voice interface integration
+  voice:
+    enable_voice_feedback: true
+    feedback_language: "en-US"  # en-US, zh-CN, etc.
+    speak_confirmations: true
+    speak_errors: true
+    speak_progress: false
+    
+# User Preferences
+user_preferences:
+  # Default settings per user
+  default_language: "python"
+  preferred_framework: null
+  coding_style_preference: "standard"
+  
+  # Learning and adaptation
+  learn_from_usage: true
+  adapt_suggestions: true
+  remember_user_patterns: true
+  
+  # Accessibility
+  accessibility:
+    high_contrast_output: false
+    screen_reader_compatible: false
+    keyboard_navigation: true

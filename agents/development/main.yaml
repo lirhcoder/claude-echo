@@ -1,0 +1,255 @@
+# Claude Voice Assistant 开发 Agents 主配置文件
+
+project_info:
+  name: "Claude Voice Assistant"
+  description: "基于 Claude Code Agents 模式的智能语音助手"
+  version: "1.0.0"
+  repository: "C:/development/claude-echo"
+
+development_mode:
+  enabled: true
+  agent_coordination: true
+  parallel_development: true
+  quality_gates: true
+  auto_testing: true
+
+available_agents:
+  coordinator:
+    name: "Development Coordinator Agent"
+    role: "主协调者"
+    config_file: "agents/development/coordinator.yaml"
+    priority: 1
+    always_active: true
+    
+  architecture:
+    name: "Architecture Agent" 
+    role: "架构师"
+    config_file: "agents/development/architecture.yaml"
+    priority: 2
+    specialization: ["system_design", "core_framework"]
+    
+  speech:
+    name: "Speech Agent"
+    role: "语音专家" 
+    config_file: "agents/development/speech.yaml"
+    priority: 2
+    specialization: ["voice_recognition", "tts", "nlp"]
+    
+  core_agents:
+    name: "Core-Agents Agent"
+    role: "核心代理开发者"
+    config_file: "agents/development/core-agents.yaml" 
+    priority: 2
+    specialization: ["ai_agents", "async_coordination"]
+    
+  adapters:
+    name: "Adapters Agent"
+    role: "适配器开发者"
+    config_file: "agents/development/adapters.yaml"
+    priority: 3
+    specialization: ["system_integration", "api_wrapping"]
+    
+  testing:
+    name: "Testing Agent"
+    role: "测试工程师"
+    config_file: "agents/development/testing.yaml"
+    priority: 4
+    specialization: ["automated_testing", "quality_assurance"]
+    
+  documentation:
+    name: "Documentation Agent"
+    role: "文档专家"
+    config_file: "agents/development/documentation.yaml"
+    priority: 4
+    specialization: ["technical_writing", "api_docs"]
+    
+  integration:
+    name: "Integration Agent"
+    role: "集成工程师"
+    config_file: "agents/development/integration.yaml"
+    priority: 5
+    specialization: ["system_integration", "e2e_testing"]
+    
+  devops:
+    name: "DevOps Agent"
+    role: "运维工程师"
+    config_file: "agents/development/devops.yaml"
+    priority: 6
+    specialization: ["ci_cd", "deployment", "monitoring"]
+
+development_phases:
+  phase_1:
+    name: "架构和基础框架"
+    duration: "2-3周"
+    primary_agents: ["architecture", "speech"]
+    supporting_agents: ["coordinator", "testing", "documentation"]
+    deliverables:
+      - "系统架构设计"
+      - "核心基础框架"
+      - "语音处理基础"
+      - "配置管理系统"
+    
+  phase_2:
+    name: "核心 Agents 开发"
+    duration: "2-3周"
+    primary_agents: ["core_agents"]
+    supporting_agents: ["architecture", "testing"]
+    deliverables:
+      - "7个核心智能代理"
+      - "Agent协作框架"
+      - "状态管理系统"
+    
+  phase_3:
+    name: "适配器系统"
+    duration: "2-3周"
+    primary_agents: ["adapters"]
+    supporting_agents: ["architecture", "integration"]
+    deliverables:
+      - "Claude Code适配器"
+      - "系统操作适配器"
+      - "IDE集成适配器"
+    
+  phase_4:
+    name: "集成和优化"
+    duration: "1-2周"
+    primary_agents: ["integration", "testing"]
+    supporting_agents: ["devops", "documentation"]
+    deliverables:
+      - "系统集成测试"
+      - "性能优化"
+      - "部署方案"
+
+workflow_patterns:
+  task_assignment:
+    flow: "用户需求 → Coordinator分析 → 专业Agent执行 → 结果整合"
+    coordination: "Development Coordinator Agent"
+    
+  parallel_development:
+    enabled: true
+    max_concurrent_agents: 4
+    dependency_management: "自动检测和协调"
+    
+  quality_control:
+    continuous_testing: true
+    code_review: "架构师审查"
+    documentation_sync: "实时更新"
+    integration_validation: "每日集成测试"
+
+communication_protocols:
+  agent_to_agent:
+    method: "Claude Code Task工具"
+    format: "结构化任务描述"
+    timeout: "30分钟"
+    retry_policy: "3次重试"
+    
+  progress_reporting:
+    frequency: "每个里程碑"
+    format: "TodoWrite更新"
+    escalation: "延期>20%自动升级"
+    
+  collaboration_rules:
+    - "明确任务边界和接口"
+    - "及时通报依赖和阻塞"
+    - "共享设计决策和变更"
+    - "保持代码和文档同步"
+
+quality_standards:
+  code_quality:
+    - "Python代码符合PEP 8标准"
+    - "类型提示覆盖率 > 90%"
+    - "函数复杂度 < 10"
+    - "代码覆盖率 > 80%"
+    
+  architecture_quality:
+    - "模块耦合度最小化"
+    - "接口设计清晰一致"
+    - "扩展性和可维护性良好"
+    - "性能满足设计目标"
+    
+  documentation_quality:
+    - "API文档完整准确"
+    - "架构决策有记录"
+    - "代码注释清晰"
+    - "用户手册易懂"
+
+development_tools:
+  project_management:
+    - "TodoWrite: 任务跟踪"
+    - "里程碑管理"
+    - "进度可视化"
+    
+  code_development:
+    - "Write/Edit/MultiEdit: 代码编辑"
+    - "Read: 代码审查"
+    - "Bash: 环境操作"
+    
+  testing_tools:
+    - "pytest: 单元测试"
+    - "integration_tests: 集成测试"
+    - "performance_tests: 性能测试"
+    
+  documentation_tools:
+    - "Markdown: 文档编写"
+    - "自动API文档生成"
+    - "架构图生成"
+
+success_metrics:
+  development_velocity:
+    - "任务完成率 > 90%"
+    - "平均任务周期 < 3天"
+    - "重做率 < 10%"
+    
+  code_quality:
+    - "测试覆盖率 > 80%"
+    - "代码审查通过率 > 95%"
+    - "生产缺陷率 < 1%"
+    
+  team_collaboration:
+    - "Agent间协作效率 > 85%"
+    - "沟通响应时间 < 4小时"
+    - "依赖阻塞时间 < 1天"
+
+risk_management:
+  technical_risks:
+    - "关键技术验证"
+    - "性能瓶颈识别"
+    - "第三方依赖风险"
+    
+  process_risks:
+    - "Agent协作冲突"
+    - "任务依赖延迟"
+    - "质量标准偏差"
+    
+  mitigation_strategies:
+    - "早期原型验证"
+    - "并行方案开发"
+    - "定期风险评估"
+
+usage_examples:
+  simple_task:
+    command: "开发语音识别功能"
+    expected_flow: "Coordinator → Speech Agent → Testing Agent"
+    
+  complex_task:
+    command: "实现完整的Claude Code集成"
+    expected_flow: "Coordinator → Architecture + Adapters + Core-Agents → Integration → Testing"
+    
+  maintenance_task:
+    command: "优化系统性能"
+    expected_flow: "Coordinator → Architecture + DevOps → Testing → Documentation"
+
+monitoring_and_alerts:
+  progress_tracking:
+    - "每日进度报告"
+    - "里程碑达成通知"
+    - "风险预警"
+    
+  quality_monitoring:
+    - "代码质量监控"
+    - "测试结果跟踪"
+    - "性能指标监控"
+    
+  collaboration_health:
+    - "Agent活跃度监控"
+    - "任务阻塞检测"
+    - "协作效率分析"

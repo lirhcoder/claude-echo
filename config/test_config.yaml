@@ -1,0 +1,193 @@
+# Claude Voice Assistant - Alpha Testing Configuration
+# Alpha测试专用配置文件
+
+system:
+  log_level: INFO
+  environment: alpha_testing
+  enable_mock_mode: true
+  debug_mode: false
+  
+  # Testing specific settings
+  testing:
+    alpha_test_mode: true
+    skip_external_dependencies: true
+    enable_simulation: true
+    test_data_directory: "./test_projects"
+
+# Speech Configuration (Disabled for initial testing)
+speech:
+  enabled: false  # Disabled to avoid audio dependency issues
+  mock_mode: true
+  
+  recognizer:
+    engine: "mock"  # Use mock recognizer
+    model_size: "base"
+    language: "auto"
+    confidence_threshold: 0.7
+    
+  synthesizer:
+    engine: "mock"  # Use mock synthesizer
+    voice: "default"
+    rate: 200
+    volume: 0.8
+
+# Adapter Configuration
+adapters:
+  # Claude Code Adapter (Main focus for testing)
+  claude_code:
+    enabled: true
+    mock_mode: true  # Use simulation mode
+    priority: 100
+    
+    mcp:
+      timeout: 10.0  # Shorter timeout for testing
+      max_retries: 2
+      mock_responses: true
+    
+    security:
+      allowed_operations: ["read", "write", "create", "analyze"]
+      restricted_operations: ["delete", "system_command"]
+      require_confirmation: ["delete_file"]
+      
+  # Voice Interface Adapter (Disabled for Alpha)
+  voice_interface:
+    enabled: false
+    mock_mode: true
+
+# Event System
+events:
+  enabled: true
+  buffer_size: 100
+  max_listeners_per_event: 10
+  enable_history: true
+  history_limit: 1000
+
+# Security Settings (Restrictive for testing)
+security:
+  risk_levels:
+    low: ["read_file", "list_directory", "get_project_info"]
+    medium: ["edit_file", "create_file", "run_tests"]
+    high: ["delete_file", "system_command"]
+    critical: ["format_drive", "network_access"]
+  
+  policies:
+    alpha_testing: ["low", "medium"]  # Only allow safe operations
+    user_confirmation: ["high", "critical"]
+    
+  # File protection for testing
+  protected_files:
+    - ".git/**"
+    - "config/**"
+    - "*.bat"
+    - "*.sh"
+    - "requirements*.txt"
+
+# Logging Configuration
+logging:
+  level: INFO
+  file: "./logs/alpha_test.log"
+  max_file_size: "10MB"
+  backup_count: 3
+  
+  # Enhanced logging for testing
+  modules:
+    core: INFO
+    adapters: DEBUG
+    speech: INFO
+    agents: INFO
+    
+  # Test-specific logging
+  test_logging:
+    log_commands: true
+    log_results: true
+    log_performance: true
+    log_errors: true
+
+# Performance Settings (Optimized for testing)
+performance:
+  max_concurrent_operations: 3
+  operation_timeout: 30  # seconds
+  memory_limit: "500MB"
+  
+  # Testing performance tracking
+  enable_profiling: true
+  track_response_times: true
+  collect_metrics: true
+
+# Agent Configuration (Simplified for Alpha)
+agents:
+  # Enable only essential agents
+  coordinator:
+    enabled: true
+    mock_mode: true
+    
+  task_planner:
+    enabled: true
+    mock_mode: true
+    
+  auto_worker:
+    enabled: true
+    mock_mode: true
+    
+  security_guardian:
+    enabled: true
+    strict_mode: true  # Extra strict for testing
+    
+  # Disable complex agents for initial testing
+  presence_monitor:
+    enabled: false
+    
+  handover_manager:
+    enabled: false
+    
+  session_manager:
+    enabled: true
+    mock_mode: true
+
+# Testing Configuration
+testing:
+  # Test data generation
+  generate_test_data: true
+  test_project_templates:
+    - python_basic
+    - javascript_basic
+    - mixed_project
+    
+  # Simulation settings
+  simulate_delays: false
+  simulate_errors: false
+  error_simulation_rate: 0.1  # 10% error rate
+  
+  # Alpha test specific
+  alpha_test:
+    collect_usage_stats: true
+    track_user_interactions: true
+    enable_feedback_collection: true
+    auto_report_issues: false
+    
+    # Test scenarios
+    test_scenarios:
+      - basic_functionality
+      - code_generation
+      - file_operations
+      - error_handling
+      
+  # Mock services for testing
+  mock_services:
+    claude_api: true
+    file_system: false  # Use real file system
+    network_requests: true
+    audio_devices: true
+
+# Development Settings
+development:
+  hot_reload: false  # Disabled for stable testing
+  auto_restart_on_config_change: false
+  enable_debug_endpoints: true
+  
+  # Alpha testing features
+  alpha_features:
+    enhanced_error_reporting: true
+    detailed_logging: true
+    performance_monitoring: true
+    user_feedback_integration: true

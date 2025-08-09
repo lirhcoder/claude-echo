@@ -1,0 +1,15 @@
+# Claude Voice Assistant - Minimal Dependencies
+# 最小依赖包列表（适用于Alpha测试）
+
+# Core Framework (Required)
+pydantic>=2.0.0,<3.0.0       # Data validation and settings management
+loguru>=0.7.0,<1.0.0          # Advanced logging
+pyyaml>=6.0.0,<7.0.0          # YAML configuration files
+aiofiles>=23.0.0,<24.0.0      # Async file operations
+
+# HTTP and Networking (Required)
+requests>=2.31.0,<3.0.0       # HTTP library
+aiohttp>=3.8.0,<4.0.0         # Async HTTP client/server
+
+# Numerical Computing (Required by speech modules)
+numpy>=1.21.0,<2.0.0          # Numerical computing for audio processing

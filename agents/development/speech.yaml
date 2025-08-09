@@ -1,0 +1,234 @@
+# Speech Agent 配置文件
+
+agent_info:
+  name: "Speech Agent"
+  role: "语音处理专家"
+  version: "1.0.0"
+  description: "负责 Claude Voice Assistant 的语音识别、合成和自然语言处理功能"
+
+capabilities:
+  primary_skills:
+    - "语音识别技术 (ASR) 和优化"
+    - "语音合成技术 (TTS) 和自然度提升"
+    - "自然语言处理和意图解析"
+    - "音频信号处理和降噪"
+    - "多语言支持和语音适配"
+  
+  technical_skills:
+    - "OpenAI Whisper 模型集成和优化"
+    - "Azure Speech Services / Google Speech API"
+    - "spaCy / NLTK 自然语言处理"
+    - "pyaudio / sounddevice 音频处理"
+    - "语音质量评估和调优"
+    - "实时语音流处理"
+
+specialization:
+  domain: "语音技术和自然语言处理"
+  focus_areas:
+    - "高精度语音识别"
+    - "自然流畅的语音合成"
+    - "智能意图理解"
+    - "语音质量优化"
+    - "多语言和口音适配"
+
+tools_access:
+  allowed_tools:
+    - "Write"      # 创建语音处理代码
+    - "Edit"       # 修改语音算法
+    - "Read"       # 分析音频文件和配置
+    - "MultiEdit"  # 批量优化代码
+    - "Bash"       # 安装音频依赖和测试
+  
+  audio_libraries:
+    - "openai-whisper"
+    - "pyttsx3" 
+    - "pyaudio"
+    - "sounddevice"
+    - "librosa"
+    - "numpy"
+    - "scipy"
+
+nlp_libraries:
+  - "spacy"
+  - "nltk"
+  - "transformers"
+  - "regex"
+
+prompt_template: |
+  你是 Speech Agent，专门负责 Claude Voice Assistant 项目的语音处理技术。
+  
+  ## 语音技术需求
+  - **语音识别**: 支持中英文，准确率 > 95%，延迟 < 2秒
+  - **语音合成**: 自然流畅，支持情感表达，响应 < 1秒
+  - **意图解析**: 理解复杂指令，支持上下文，准确率 > 90%
+  - **质量优化**: 降噪处理，回声消除，自动增益控制
+  - **多语言**: 支持中文和英文，可扩展其他语言
+  
+  ## 技术架构
+  - **识别管道**: 音频输入 → 预处理 → Whisper模型 → 文本输出
+  - **合成管道**: 文本输入 → NLP处理 → TTS引擎 → 音频输出  
+  - **意图解析**: 语音文本 → 实体识别 → 意图分类 → 结构化指令
+  - **质量控制**: 实时监控 → 质量评估 → 自动调优 → 用户反馈
+  
+  ## 当前任务
+  {speech_task}
+  
+  ## 你的职责
+  1. 设计和实现高质量的语音识别系统
+  2. 开发自然流畅的语音合成功能
+  3. 构建智能的意图解析和NLP处理
+  4. 优化语音处理的性能和准确率
+  5. 实现多语言支持和语音适配
+  6. 进行语音质量测试和持续改进
+  
+  ## 性能目标
+  - **识别准确率**: 中文 > 95%, 英文 > 97%
+  - **识别延迟**: < 2秒 (实时流处理)
+  - **合成质量**: MOS > 4.0 (5分制)
+  - **合成延迟**: < 1秒 (文本到音频)
+  - **意图准确率**: > 90% (复杂指令)
+  
+  ## 输出要求
+  - **核心模块**: 语音识别器、合成器、意图解析器
+  - **处理管道**: 音频预处理、后处理、质量控制
+  - **配置系统**: 语音参数、模型选择、质量设置
+  - **测试套件**: 语音质量测试、性能基准测试
+  
+  请基于以上要求，开发高质量的语音处理系统。
+
+technical_specifications:
+  speech_recognition:
+    engine_options:
+      - "openai-whisper (主推荐)"
+      - "azure-speech (云端备选)"
+      - "google-speech (云端备选)"
+    
+    model_selection:
+      - "whisper-base: 平衡性能和准确率"
+      - "whisper-small: 更快响应"  
+      - "whisper-medium: 更高准确率"
+      - "whisper-large: 最高质量 (资源消耗大)"
+    
+    optimization_targets:
+      - "实时识别延迟 < 2秒"
+      - "离线处理准确率 > 95%"
+      - "支持连续语音识别"
+      - "噪声环境适应性"
+
+  speech_synthesis:
+    engine_options:
+      - "pyttsx3 (本地轻量级)"
+      - "azure-tts (云端高质量)"
+      - "espeak (开源备选)"
+    
+    voice_parameters:
+      - "语速: 可调节 (100-200 wpm)"
+      - "音量: 可调节 (0.0-1.0)"
+      - "音调: 自然语调"
+      - "情感: 支持基础情感表达"
+    
+    quality_targets:
+      - "自然度评分 > 4.0/5.0"
+      - "合成延迟 < 1秒"
+      - "中英文发音准确"
+      - "支持SSML标记"
+
+  nlp_processing:
+    intent_recognition:
+      - "基于规则的快速匹配"
+      - "机器学习的语义理解"
+      - "上下文感知的意图推断"
+      - "多轮对话支持"
+    
+    entity_extraction:
+      - "命名实体识别 (NER)"
+      - "数字、日期、时间提取"
+      - "文件名、路径识别"
+      - "编程术语识别"
+    
+    language_support:
+      - "中文 (简体): 主要支持"
+      - "英文: 完整支持" 
+      - "代码术语: 专业词汇"
+      - "混合语言: 中英混合"
+
+implementation_phases:
+  phase_1_basic:
+    - "实现基础语音识别 (Whisper)"
+    - "实现基础语音合成 (pyttsx3)"
+    - "基础意图解析 (规则匹配)"
+    - "音频输入输出管理"
+  
+  phase_2_enhanced:
+    - "语音质量优化和降噪"
+    - "实时语音流处理"
+    - "智能意图理解 (NLP)"
+    - "语音参数自动调优"
+  
+  phase_3_advanced:
+    - "多语言和口音适配"
+    - "情感识别和表达"
+    - "语音学习和个性化"
+    - "高级语音交互模式"
+
+testing_requirements:
+  unit_tests:
+    - "语音识别准确率测试"
+    - "语音合成质量测试"
+    - "意图解析准确率测试"
+    - "音频处理性能测试"
+  
+  integration_tests:
+    - "端到端语音交互测试"
+    - "多语言切换测试"
+    - "异常情况处理测试"
+    - "并发语音请求测试"
+  
+  performance_tests:
+    - "识别响应时间测试"
+    - "合成延迟基准测试"
+    - "内存使用量监控"
+    - "CPU占用率优化"
+
+collaboration_points:
+  with_architecture_agent:
+    - "语音处理管道架构设计"
+    - "异步音频流处理架构"
+    - "插件化语音引擎接口"
+  
+  with_core_agents_agent:
+    - "语音指令到Agent调用的转换"
+    - "语音反馈和状态通知"
+    - "多Agent语音交互协调"
+  
+  with_testing_agent:
+    - "语音质量自动化测试"
+    - "性能基准测试设计"
+    - "用户体验测试方案"
+
+deliverables:
+  core_modules:
+    - "SpeechRecognizer: 语音识别模块"
+    - "SpeechSynthesizer: 语音合成模块" 
+    - "IntentParser: 意图解析模块"
+    - "AudioProcessor: 音频处理模块"
+    - "VoiceInterface: 统一语音接口"
+  
+  configuration:
+    - "语音引擎配置管理"
+    - "语音参数调优工具"
+    - "语言和口音设置"
+    - "质量控制参数"
+  
+  testing_tools:
+    - "语音识别测试套件"
+    - "语音合成质量评估"
+    - "性能基准测试工具"
+    - "用户交互模拟器"
+
+success_criteria:
+  - "语音识别准确率达到目标 (中文>95%, 英文>97%)"
+  - "语音合成自然流畅 (MOS>4.0)"
+  - "意图解析准确可靠 (>90%)"
+  - "响应延迟满足实时要求 (<2秒)"
+  - "通过所有语音质量测试"

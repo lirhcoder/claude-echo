@@ -1,0 +1,308 @@
+# Claude Voice Assistant 默认配置文件
+
+# 平台信息
+platform:
+  name: "Claude Voice Assistant"
+  version: "1.0.0"
+  mode: "development"  # development, production
+
+# 语音识别配置
+speech:
+  # 识别引擎
+  recognition:
+    engine: "whisper"  # whisper, azure_speech, google_speech
+    model: "base"      # tiny, base, small, medium, large
+    language: "zh"     # zh, en, auto
+    timeout: 30        # 超时时间(秒)
+    
+  # 语音合成
+  synthesis:
+    engine: "pyttsx3"  # pyttsx3, azure_tts, google_tts
+    voice: "zh"
+    rate: 150          # 语速
+    volume: 0.8        # 音量 (0.0-1.0)
+    
+  # 语音处理优化
+  processing:
+    noise_reduction: true
+    echo_cancellation: true
+    auto_gain_control: true
+    vad_enabled: true  # 语音活动检测
+    
+  # 编程词汇优化
+  code_optimization:
+    enabled: true
+    abbreviation_expansion: true  # 自动展开缩写
+    punctuation_inference: true   # 推断标点符号
+    programming_keywords: true    # 编程关键词优化
+
+# 智能代理配置
+agents:
+  # 协调中心
+  coordinator:
+    enabled: true
+    max_concurrent_requests: 5
+    request_timeout: 120  # 秒
+    
+  # 任务规划
+  task_planner:
+    enabled: true
+    max_task_depth: 10
+    parallel_execution: true
+    optimization_enabled: true
+    
+  # 状态监控
+  presence_monitor:
+    enabled: true
+    check_interval: 1      # 检查间隔(秒)
+    inactivity_timeout: 300  # 非活动超时(秒)
+    detection_methods:
+      mouse_activity: true
+      keyboard_activity: true
+      camera_detection: false  # 需要摄像头权限
+      audio_activity: true
+      
+  # 自主执行
+  auto_worker:
+    enabled: true
+    max_parallel_tasks: 3
+    execution_timeout: 600  # 秒
+    retry_attempts: 3
+    retry_delay: 2  # 秒
+    
+  # 安全监护
+  security_guardian:
+    enabled: true
+    strict_mode: false  # 严格模式
+    audit_logging: true
+    
+  # 交接管理
+  handover_manager:
+    enabled: true
+    auto_summary: true
+    summary_detail_level: "medium"  # low, medium, high
+    
+  # 会话管理
+  session_manager:
+    enabled: true
+    auto_save: true
+    save_interval: 60  # 秒
+    max_session_duration: 86400  # 24小时
+
+# 适配器配置
+adapters:
+  auto_load: true
+  search_paths:
+    - "src/adapters"
+    - "plugins"
+    
+  # Claude Code 适配器
+  claude_code:
+    enabled: true
+    installation_path: "auto_detect"  # 或指定路径
+    mcp:
+      enabled: true
+      server_port: 8080
+      timeout: 30
+      max_retries: 3
+    code_generation:
+      default_language: "auto_detect"
+      coding_style: "standard"
+      include_comments: true
+      include_type_hints: true
+    security:
+      allowed_operations: ["read", "write", "create", "format", "lint"]
+      restricted_operations: ["delete", "system_command"]
+      require_confirmation: ["refactor_large_file", "mass_file_operations"]
+      
+  # 系统操作适配器
+  system:
+    enabled: true
+    mouse_control: true
+    keyboard_control: true
+    window_management: true
+    application_control: true
+    security_level: "medium"  # low, medium, high
+    
+  # IDE 适配器
+  ide:
+    enabled: true
+    supported_ides:
+      - "vscode"
+      - "pycharm" 
+      - "intellij"
+      - "sublime_text"
+    auto_detect: true
+    
+  # 办公软件适配器  
+  office:
+    enabled: true
+    supported_apps:
+      - "word"
+      - "excel" 
+      - "powerpoint"
+      - "notepad"
+      - "browser"
+    integration_level: "basic"  # basic, advanced
+
+# 安全配置
+security:
+  # 风险等级阈值
+  risk_thresholds:
+    low: 0.2
+    medium: 0.5
+    high: 0.8
+    critical: 0.95
+    
+  # 操作风险级别
+  operation_risks:
+    file_read: 0.1
+    file_write: 0.3
+    file_delete: 0.7
+    system_command: 0.8
+    network_access: 0.6
+    registry_modify: 0.9
+    
+  # 自动批准限制
+  auto_approval_limits:
+    silent_mode: 0.3        # 静音模式最高允许风险级别
+    interactive_mode: 0.6   # 交互模式最高允许风险级别
+    
+  # 需要确认的操作
+  required_confirmations:
+    - operation: "delete_file"
+      conditions: ["file_size > 1MB", "file_extension in ['.exe', '.dll']"]
+    - operation: "system_command"
+      conditions: ["contains_keywords(['format', 'delete', 'remove'])"]
+      
+  # 禁止的操作
+  blocked_operations:
+    - "format_drive"
+    - "delete_system_files"
+    - "modify_boot_sector"
+    
+  # 审计设置
+  audit:
+    enabled: true
+    log_all_operations: true
+    log_level: "INFO"
+    retention_days: 90
+    log_file: "logs/audit.log"
+
+# 存储配置
+storage:
+  # 会话存储
+  sessions:
+    directory: "data/sessions"
+    format: "json"  # json, pickle, yaml
+    compression: false
+    
+  # 配置存储
+  config:
+    user_config_path: "config/user.yaml"
+    backup_config: true
+    
+  # 日志存储
+  logs:
+    directory: "logs"
+    max_file_size: "10MB"
+    backup_count: 5
+    
+  # 缓存存储
+  cache:
+    directory: "cache"
+    max_size: "100MB"
+    cleanup_interval: 3600  # 秒
+
+# 网络配置
+network:
+  # 代理设置
+  proxy:
+    enabled: false
+    http_proxy: ""
+    https_proxy: ""
+    
+  # 超时设置
+  timeouts:
+    connection: 30
+    read: 60
+    
+  # 重试设置
+  retries:
+    max_attempts: 3
+    backoff_factor: 1.0
+
+# 性能配置
+performance:
+  # 线程池
+  thread_pool:
+    max_workers: 10
+    
+  # 协程池
+  async_pool:
+    max_concurrent: 20
+    
+  # 内存限制
+  memory:
+    max_usage: "512MB"
+    gc_threshold: "256MB"
+    
+  # 缓存配置
+  cache:
+    enable_memory_cache: true
+    cache_size: 1000
+    cache_ttl: 3600  # 秒
+
+# 用户界面配置
+ui:
+  # 命令行界面
+  cli:
+    enabled: true
+    theme: "dark"  # dark, light
+    show_progress: true
+    show_timestamps: true
+    
+  # 系统托盘
+  tray:
+    enabled: true
+    minimize_to_tray: true
+    
+  # 通知
+  notifications:
+    enabled: true
+    sound: true
+    duration: 5  # 秒
+
+# 语言和本地化
+localization:
+  default_language: "zh"
+  supported_languages:
+    - "zh"
+    - "en"
+  timezone: "Asia/Shanghai"
+  date_format: "%Y-%m-%d"
+  time_format: "%H:%M:%S"
+
+# 调试配置
+debug:
+  enabled: false  # 生产环境应设为false
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  detailed_errors: false
+  performance_monitoring: false
+  
+# 实验性功能
+experimental:
+  # AI协作增强
+  ai_collaboration:
+    enabled: false
+    model: "gpt-4"
+    
+  # 多语言支持
+  multilingual:
+    enabled: false
+    auto_translation: false
+    
+  # 插件系统
+  plugins:
+    enabled: false
+    hot_reload: false

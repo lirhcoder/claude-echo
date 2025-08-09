@@ -1,0 +1,27 @@
+# Claude Voice Assistant - Full Dependencies
+# 完整依赖包列表（包含语音功能）
+
+# Core Framework
+pydantic>=2.0.0,<3.0.0       # Data validation and settings management
+loguru>=0.7.0,<1.0.0          # Advanced logging
+pyyaml>=6.0.0,<7.0.0          # YAML configuration files
+aiofiles>=23.0.0,<24.0.0      # Async file operations
+
+# Speech Processing Dependencies
+openai-whisper>=20231117      # Speech recognition (OpenAI Whisper)
+pyttsx3>=2.90                 # Text-to-speech synthesis
+pyaudio>=0.2.11               # Audio input/output
+wave>=0.0.2                   # WAV audio file support
+numpy>=1.21.0,<2.0.0          # Numerical computing
+
+# HTTP and Networking
+requests>=2.31.0,<3.0.0       # HTTP library
+aiohttp>=3.8.0,<4.0.0         # Async HTTP client/server
+
+# Development and Testing
+pytest>=7.0.0,<8.0.0          # Testing framework
+pytest-asyncio>=0.21.0,<1.0.0 # Async testing support
+
+# Optional: Code Quality Tools
+black>=23.0.0,<24.0.0          # Code formatting
+mypy>=1.0.0,<2.0.0             # Static type checking
