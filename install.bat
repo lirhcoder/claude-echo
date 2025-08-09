@@ -77,9 +77,10 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM Install speech dependencies (optional)
+REM Install speech dependencies (optional) - Fixed to avoid MySQL dependency
 echo Installing speech processing dependencies...
-pip install openai-whisper pyttsx3 pyaudio wave
+echo [INFO] Installing minimal speech dependencies for Alpha testing...
+pip install openai-whisper pyttsx3 pyaudio
 if %errorlevel% neq 0 (
     echo [WARNING] Speech dependencies failed, will run in Mock mode
     echo For full functionality, manually install: pip install openai-whisper pyttsx3 pyaudio
@@ -104,65 +105,80 @@ if not exist ".voice-assistant-cache\" mkdir .voice-assistant-cache
 
 echo [OK] Project structure initialized
 
-REM Run initial setup
+REM Run initial setup - Create Python script file to avoid command line issues
 echo.
 echo Running initial configuration...
-python -c "
-import yaml
-import os
-from pathlib import Path
 
-# Create basic test configuration
-config = {
-    'system': {
-        'log_level': 'INFO',
-        'environment': 'testing',
-        'enable_mock_mode': True
-    },
-    'speech': {
-        'enabled': False,
-        'mock_mode': True
-    },
-    'adapters': {
-        'claude_code': {
-            'enabled': True,
-            'mock_mode': True
-        }
-    }
-}
+REM Create temporary Python script
+echo import yaml > temp_config.py
+echo import os >> temp_config.py
+echo from pathlib import Path >> temp_config.py
+echo. >> temp_config.py
+echo # Create basic test configuration >> temp_config.py
+echo config = { >> temp_config.py
+echo     'system': { >> temp_config.py
+echo         'log_level': 'INFO', >> temp_config.py
+echo         'environment': 'testing', >> temp_config.py
+echo         'enable_mock_mode': True >> temp_config.py
+echo     }, >> temp_config.py
+echo     'speech': { >> temp_config.py
+echo         'enabled': False, >> temp_config.py
+echo         'mock_mode': True >> temp_config.py
+echo     }, >> temp_config.py
+echo     'adapters': { >> temp_config.py
+echo         'claude_code': { >> temp_config.py
+echo             'enabled': True, >> temp_config.py
+echo             'mock_mode': True >> temp_config.py
+echo         } >> temp_config.py
+echo     } >> temp_config.py
+echo } >> temp_config.py
+echo. >> temp_config.py
+echo config_path = Path('config/test_config.yaml') >> temp_config.py
+echo config_path.parent.mkdir(exist_ok=True) >> temp_config.py
+echo with open(config_path, 'w', encoding='utf-8') as f: >> temp_config.py
+echo     yaml.dump(config, f, allow_unicode=True) >> temp_config.py
+echo. >> temp_config.py
+echo print('[OK] Test configuration file generated') >> temp_config.py
 
-config_path = Path('config/test_config.yaml')
-config_path.parent.mkdir(exist_ok=True)
-with open(config_path, 'w', encoding='utf-8') as f:
-    yaml.dump(config, f, allow_unicode=True)
+REM Run the Python script
+python temp_config.py
+if %errorlevel% neq 0 (
+    echo [ERROR] Configuration setup failed
+) else (
+    echo [OK] Configuration completed
+)
 
-print('[OK] Test configuration file generated')
-"
+REM Clean up temporary file
+del temp_config.py >nul 2>&1
 
-REM Test basic import
+REM Test basic import - Create temporary test script
 echo.
 echo Verifying installation...
-python -c "
-try:
-    import sys
-    sys.path.append('src')
-    from core.types import CommandResult, AdapterStatus
-    from core.config_manager import ConfigManager
-    print('[OK] Core modules imported successfully')
-    
-    # Test config loading
-    config = ConfigManager('config/test_config.yaml')
-    print('[OK] Configuration manager test passed')
-    
-except ImportError as e:
-    print(f'[ERROR] Module import failed: {e}')
-    sys.exit(1)
-except Exception as e:
-    print(f'[ERROR] Configuration test failed: {e}')
-    sys.exit(1)
-"
 
-if %errorlevel% neq 0 (
+echo try: > temp_test.py
+echo     import sys >> temp_test.py
+echo     sys.path.append('src') >> temp_test.py
+echo     from core.types import CommandResult, AdapterStatus >> temp_test.py
+echo     from core.config_manager import ConfigManager >> temp_test.py
+echo     print('[OK] Core modules imported successfully') >> temp_test.py
+echo     # Test config loading >> temp_test.py
+echo     config = ConfigManager('config/test_config.yaml') >> temp_test.py
+echo     print('[OK] Configuration manager test passed') >> temp_test.py
+echo except ImportError as e: >> temp_test.py
+echo     print(f'[ERROR] Module import failed: {e}') >> temp_test.py
+echo     sys.exit(1) >> temp_test.py
+echo except Exception as e: >> temp_test.py
+echo     print(f'[ERROR] Configuration test failed: {e}') >> temp_test.py
+echo     sys.exit(1) >> temp_test.py
+
+REM Run test script
+python temp_test.py
+set test_result=%errorlevel%
+
+REM Clean up test file
+del temp_test.py >nul 2>&1
+
+if %test_result% neq 0 (
     echo [ERROR] Installation verification failed
     pause
     exit /b 1
@@ -193,6 +209,6 @@ echo   - GitHub Issues: https://github.com/lirhcoder/claude-echo/issues
 echo   - Testing guide: docs\testing_guide.md
 echo.
 echo NOTE: Currently running in Mock mode, speech features disabled
-echo       For full functionality, install complete speech dependencies
+echo       Alpha version focuses on core architecture testing
 echo.
 pause
