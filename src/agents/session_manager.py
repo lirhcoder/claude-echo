@@ -21,6 +21,8 @@ from loguru import logger
 
 from ..core.event_system import EventSystem
 from ..core.types import Context, RiskLevel
+from ..learning.learning_data_manager import LearningDataManager, LearningData, DataPrivacyLevel
+from ..learning.learning_events import LearningEventFactory, LearningEventType
 from .base_agent import BaseAgent
 from .agent_types import (
     AgentType, AgentRequest, AgentResponse, AgentEvent, AgentCapability
@@ -59,6 +61,11 @@ class SessionData:
     user_preferences: Dict[str, Any] = field(default_factory=dict)
     session_history: List[Dict[str, Any]] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    # Learning system integration
+    learning_enabled: bool = True
+    learning_data: List[Dict[str, Any]] = field(default_factory=list)
+    user_patterns: Dict[str, Any] = field(default_factory=dict)
+    adaptation_settings: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -86,6 +93,10 @@ class SessionManager(BaseAgent):
         self._active_sessions: Dict[str, SessionData] = {}
         self._session_snapshots: Dict[str, List[SessionSnapshot]] = {}
         self._max_sessions = self.config.get('max_concurrent_sessions', 10)
+        
+        # Learning system integration
+        self._learning_enabled = self.config.get('learning_enabled', True)
+        self._learning_data_manager: Optional[LearningDataManager] = None
         
         # Persistence configuration
         self._persistence_level = PersistenceLevel.STANDARD
@@ -197,6 +208,16 @@ class SessionManager(BaseAgent):
         # Load configuration
         await self._load_session_config()
         
+        # Initialize learning data manager if enabled
+        if self._learning_enabled:
+            learning_config = self.config.get('learning', {})
+            self._learning_data_manager = LearningDataManager(
+                event_system=self.event_system,
+                config=learning_config
+            )
+            await self._learning_data_manager.initialize()
+            self.logger.info("Learning Data Manager initialized")
+        
         # Recover existing sessions
         await self._recover_existing_sessions()
         
@@ -209,6 +230,11 @@ class SessionManager(BaseAgent):
         
         monitor_task = asyncio.create_task(self._session_monitor_loop())
         self._background_tasks.add(monitor_task)
+        
+        # Start learning-related background task
+        if self._learning_enabled:
+            learning_task = asyncio.create_task(self._learning_analysis_loop())
+            self._background_tasks.add(learning_task)
         
         self.logger.info("Session Manager initialization complete")
     
@@ -280,6 +306,10 @@ class SessionManager(BaseAgent):
         # Terminate active sessions gracefully
         for session_id in list(self._active_sessions.keys()):
             await self._terminate_session_internal(session_id, graceful=True)
+        
+        # Cleanup learning data manager
+        if self._learning_data_manager:
+            await self._learning_data_manager.shutdown()
         
         self.logger.info("Session Manager cleanup complete")
     
@@ -395,6 +425,10 @@ class SessionManager(BaseAgent):
         
         # Update activity timestamp
         session_data.last_activity = datetime.now()
+        
+        # Store learning data if enabled
+        if self._learning_enabled and self._learning_data_manager:
+            await self._capture_session_learning_data(session_data, updates)
         
         # Create snapshot for significant updates
         if any(key in updates for key in ["context", "active_tasks"]):
@@ -999,3 +1033,286 @@ class SessionManager(BaseAgent):
             # Maintain history size
             if len(session_data.session_history) > self._max_session_history:
                 session_data.session_history = session_data.session_history[-self._max_session_history:]
+            
+            # Store learning data if enabled
+            if self._learning_enabled and self._learning_data_manager:
+                await self._capture_task_completion_learning_data(session_data, task_data)
+    
+    # Learning system integration methods
+    
+    async def _capture_session_learning_data(self, session_data: SessionData, 
+                                           updates: Dict[str, Any]) -> None:
+        """Capture session interaction data for learning."""
+        try:
+            if not self._learning_data_manager:
+                return
+            
+            learning_data = LearningData(
+                user_id=session_data.user_id,
+                agent_id=self.agent_id,
+                session_id=session_data.session_id,
+                data_type="session_update",
+                data_content={
+                    "session_state": session_data.state.value,
+                    "updates": updates,
+                    "active_tasks_count": len(session_data.active_tasks),
+                    "completed_tasks_count": len(session_data.completed_tasks),
+                    "user_preferences": session_data.user_preferences,
+                    "interaction_timestamp": datetime.now().isoformat()
+                },
+                privacy_level=DataPrivacyLevel.PRIVATE,
+                metadata={
+                    "session_age_seconds": (datetime.now() - session_data.created_at).total_seconds(),
+                    "last_activity": session_data.last_activity.isoformat()
+                }
+            )
+            
+            success = await self._learning_data_manager.store_learning_data(learning_data)
+            if success:
+                session_data.learning_data.append({
+                    "data_id": learning_data.data_id,
+                    "timestamp": learning_data.created_at.isoformat(),
+                    "data_type": learning_data.data_type
+                })
+                
+        except Exception as e:
+            self.logger.error(f"Failed to capture session learning data: {e}")
+    
+    async def _capture_task_completion_learning_data(self, session_data: SessionData, 
+                                                   task_data: Dict[str, Any]) -> None:
+        """Capture task completion data for learning."""
+        try:
+            if not self._learning_data_manager:
+                return
+            
+            learning_data = LearningData(
+                user_id=session_data.user_id,
+                agent_id=self.agent_id,
+                session_id=session_data.session_id,
+                data_type="task_completion",
+                data_content={
+                    "task_data": task_data,
+                    "completion_time": datetime.now().isoformat(),
+                    "session_context": {
+                        "active_tasks": len(session_data.active_tasks),
+                        "completed_tasks": len(session_data.completed_tasks),
+                        "session_duration": (datetime.now() - session_data.created_at).total_seconds()
+                    },
+                    "user_preferences": session_data.user_preferences
+                },
+                privacy_level=DataPrivacyLevel.PRIVATE,
+                metadata={
+                    "task_success": task_data.get("success", True),
+                    "execution_time": task_data.get("execution_time", 0)
+                }
+            )
+            
+            await self._learning_data_manager.store_learning_data(learning_data)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to capture task completion learning data: {e}")
+    
+    async def _analyze_user_patterns(self, user_id: str) -> Dict[str, Any]:
+        """Analyze user interaction patterns from learning data."""
+        try:
+            if not self._learning_data_manager:
+                return {}
+            
+            # Retrieve user's learning data
+            learning_data = await self._learning_data_manager.retrieve_learning_data(
+                user_id=user_id,
+                limit=500
+            )
+            
+            if not learning_data:
+                return {}
+            
+            patterns = {
+                "interaction_frequency": {},
+                "preferred_times": [],
+                "common_task_types": {},
+                "session_duration_patterns": [],
+                "success_patterns": {}
+            }
+            
+            for data in learning_data:
+                # Analyze interaction frequency by day
+                day = data.created_at.strftime("%A")
+                patterns["interaction_frequency"][day] = patterns["interaction_frequency"].get(day, 0) + 1
+                
+                # Analyze preferred interaction times
+                hour = data.created_at.hour
+                if hour not in patterns["preferred_times"]:
+                    patterns["preferred_times"].append(hour)
+                
+                # Analyze common task types
+                if data.data_type == "task_completion":
+                    task_type = data.data_content.get("task_data", {}).get("type", "unknown")
+                    patterns["common_task_types"][task_type] = patterns["common_task_types"].get(task_type, 0) + 1
+                
+                # Analyze session durations
+                if "session_duration" in data.data_content.get("session_context", {}):
+                    duration = data.data_content["session_context"]["session_duration"]
+                    patterns["session_duration_patterns"].append(duration)
+            
+            # Generate insights from patterns
+            insights = self._generate_pattern_insights(patterns)
+            
+            # Emit learning event
+            event = LearningEventFactory.user_pattern_detected(
+                user_id=user_id,
+                pattern_type="interaction_patterns",
+                pattern_data=patterns,
+                confidence=0.8
+            )
+            
+            system_event = event.to_system_event()
+            await self.event_system.emit(system_event)
+            
+            return {
+                "patterns": patterns,
+                "insights": insights,
+                "data_points_analyzed": len(learning_data)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to analyze user patterns: {e}")
+            return {}
+    
+    def _generate_pattern_insights(self, patterns: Dict[str, Any]) -> List[str]:
+        """Generate insights from analyzed patterns."""
+        insights = []
+        
+        # Interaction frequency insights
+        freq = patterns.get("interaction_frequency", {})
+        if freq:
+            most_active_day = max(freq, key=freq.get)
+            insights.append(f"Most active on {most_active_day} with {freq[most_active_day]} interactions")
+        
+        # Time preference insights
+        preferred_times = patterns.get("preferred_times", [])
+        if preferred_times:
+            avg_hour = sum(preferred_times) / len(preferred_times)
+            if 6 <= avg_hour <= 12:
+                insights.append("Prefers morning interactions")
+            elif 12 <= avg_hour <= 18:
+                insights.append("Prefers afternoon interactions")
+            else:
+                insights.append("Prefers evening interactions")
+        
+        # Task type insights
+        task_types = patterns.get("common_task_types", {})
+        if task_types:
+            most_common_task = max(task_types, key=task_types.get)
+            insights.append(f"Most common task type: {most_common_task}")
+        
+        # Session duration insights
+        durations = patterns.get("session_duration_patterns", [])
+        if durations:
+            avg_duration = sum(durations) / len(durations)
+            if avg_duration < 300:  # 5 minutes
+                insights.append("Prefers short, focused sessions")
+            elif avg_duration > 1800:  # 30 minutes
+                insights.append("Engages in extended sessions")
+            else:
+                insights.append("Has moderate session lengths")
+        
+        return insights
+    
+    async def _learning_analysis_loop(self) -> None:
+        """Background learning analysis loop."""
+        while not self._shutdown_requested:
+            try:
+                await asyncio.sleep(3600)  # Run every hour
+                
+                # Analyze patterns for active users
+                active_users = set()
+                for session_data in self._active_sessions.values():
+                    if session_data.user_id and session_data.user_id != "anonymous":
+                        active_users.add(session_data.user_id)
+                
+                # Perform pattern analysis for each user
+                for user_id in active_users:
+                    try:
+                        patterns = await self._analyze_user_patterns(user_id)
+                        if patterns:
+                            self.logger.debug(f"Updated patterns for user {user_id}")
+                    except Exception as e:
+                        self.logger.error(f"Failed to analyze patterns for user {user_id}: {e}")
+                
+                # Update session data with learned patterns
+                await self._update_session_adaptations()
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self.logger.error(f"Error in learning analysis loop: {e}")
+    
+    async def _update_session_adaptations(self) -> None:
+        """Update session configurations based on learned patterns."""
+        try:
+            if not self._learning_data_manager:
+                return
+            
+            for session_id, session_data in self._active_sessions.items():
+                if not session_data.user_id or session_data.user_id == "anonymous":
+                    continue
+                
+                # Get user profile
+                profile = await self._learning_data_manager.get_user_profile(session_data.user_id)
+                if not profile:
+                    continue
+                
+                # Update session based on learned preferences
+                adaptations = {}
+                
+                # Adapt session timeout based on user patterns
+                if "session_duration_patterns" in profile.interaction_patterns:
+                    durations = profile.interaction_patterns["session_duration_patterns"]
+                    if isinstance(durations, list) and durations:
+                        avg_duration = sum(durations) / len(durations)
+                        # Extend timeout for users with longer sessions
+                        if avg_duration > 1800:  # 30 minutes
+                            adaptations["extended_timeout"] = True
+                
+                # Adapt persistence frequency based on user activity
+                if profile.total_interactions > 100:
+                    # More frequent persistence for active users
+                    adaptations["frequent_persistence"] = True
+                
+                # Apply adaptations
+                if adaptations:
+                    session_data.adaptation_settings.update(adaptations)
+                    self.logger.debug(f"Applied adaptations to session {session_id}: {list(adaptations.keys())}")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to update session adaptations: {e}")
+    
+    async def get_user_learning_insights(self, user_id: str) -> Dict[str, Any]:
+        """Get learning insights for a specific user."""
+        try:
+            if not self._learning_data_manager:
+                return {"error": "Learning system not enabled"}
+            
+            # Get user profile
+            profile = await self._learning_data_manager.get_user_profile(user_id)
+            if not profile:
+                return {"error": "User profile not found"}
+            
+            # Analyze recent patterns
+            patterns = await self._analyze_user_patterns(user_id)
+            
+            return {
+                "user_profile": {
+                    "total_interactions": profile.total_interactions,
+                    "last_interaction": profile.last_interaction.isoformat() if profile.last_interaction else None,
+                    "preferences": profile.preferences,
+                    "interaction_patterns": profile.interaction_patterns
+                },
+                "recent_patterns": patterns,
+                "learning_status": "active" if self._learning_enabled else "disabled"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Failed to get user learning insights: {e}")
+            return {"error": str(e)}

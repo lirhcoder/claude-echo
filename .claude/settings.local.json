@@ -8,7 +8,11 @@
       "Bash(python:*)",
       "Bash(chmod:*)",
       "Bash(rm:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "Bash(git pull:*)",
+      "Bash(pip install:*)"
     ],
     "deny": []
   }

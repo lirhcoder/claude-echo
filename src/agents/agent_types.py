@@ -24,6 +24,11 @@ class AgentType(Enum):
     SECURITY_GUARDIAN = "security_guardian"
     HANDOVER_MANAGER = "handover_manager"
     SESSION_MANAGER = "session_manager"
+    
+    # Learning system agents
+    LEARNING_AGENT = "learning_agent"
+    USER_PROFILE_AGENT = "user_profile_agent"
+    CORRECTION_AGENT = "correction_agent"
 
 
 class AgentStatus(Enum):

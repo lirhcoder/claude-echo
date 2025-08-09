@@ -1,0 +1,201 @@
+PS C:\development\claude-echo-test\claude-echo> .\install_alpha.bat
+
+============================================
+ Claude Voice Assistant Alpha Installation
+============================================
+
+[1/5] Checking Python environment...
+[OK] Python version check passed
+Python 3.12.10
+
+[2/5] Creating virtual environment...
+Virtual environment already exists, skipping creation
+
+[3/5] Activating virtual environment...
+[OK] Virtual environment activated
+
+[4/5] Installing Alpha testing dependencies...
+[INFO] Installing all required dependencies for core architecture testing...
+Requirement already satisfied: pydantic<3.0.0,>=2.0.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from -r requirements_alpha.txt (line 5)) (2.11.7)
+Requirement already satisfied: loguru<1.0.0,>=0.7.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from -r requirements_alpha.txt (line 6)) (0.7.3)
+Requirement already satisfied: pyyaml<7.0.0,>=6.0.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from -r requirements_alpha.txt (line 7)) (6.0.2)  
+Collecting aiofiles<24.0.0,>=23.0.0 (from -r requirements_alpha.txt (line 8))
+  Using cached aiofiles-23.2.1-py3-none-any.whl.metadata (9.7 kB)
+Requirement already satisfied: requests<3.0.0,>=2.31.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from -r requirements_alpha.txt (line 11)) (2.32.4)
+Requirement already satisfied: aiohttp<4.0.0,>=3.8.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from -r requirements_alpha.txt (line 12)) (3.12.15)
+Collecting numpy<2.0.0,>=1.21.0 (from -r requirements_alpha.txt (line 15))
+  Using cached numpy-1.26.4-cp312-cp312-win_amd64.whl.metadata (61 kB)
+Collecting watchdog<4.0.0,>=3.0.0 (from -r requirements_alpha.txt (line 18))
+  Downloading watchdog-3.0.0-py3-none-win_amd64.whl.metadata (36 kB)
+Requirement already satisfied: annotated-types>=0.6.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from pydantic<3.0.0,>=2.0.0->-r requirements_alpha.txt (line 5)) (0.7.0)
+Requirement already satisfied: pydantic-core==2.33.2 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from pydantic<3.0.0,>=2.0.0->-r requirements_alpha.txt (line 5)) (2.33.2)
+Requirement already satisfied: typing-extensions>=4.12.2 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from pydantic<3.0.0,>=2.0.0->-r requirements_alpha.txt (line 5)) (4.14.1)
+Requirement already satisfied: typing-inspection>=0.4.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from pydantic<3.0.0,>=2.0.0->-r requirements_alpha.txt (line 5)) (0.4.1)
+Requirement already satisfied: colorama>=0.3.4 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from loguru<1.0.0,>=0.7.0->-r requirements_alpha.txt (line 6)) (0.4.6)
+Requirement already satisfied: win32-setctime>=1.0.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from loguru<1.0.0,>=0.7.0->-r requirements_alpha.txt (line 6)) (1.2.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from requests<3.0.0,>=2.31.0->-r requirements_alpha.txt (line 11)) (3.4.3)
+Requirement already satisfied: idna<4,>=2.5 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from requests<3.0.0,>=2.31.0->-r requirements_alpha.txt (line 11)) (3.10)
+Requirement already satisfied: urllib3<3,>=1.21.1 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from requests<3.0.0,>=2.31.0->-r requirements_alpha.txt (line 11)) (2.5.0)
+Requirement already satisfied: certifi>=2017.4.17 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from requests<3.0.0,>=2.31.0->-r requirements_alpha.txt (line 11)) (2025.8.3)
+Requirement already satisfied: aiohappyeyeballs>=2.5.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from aiohttp<4.0.0,>=3.8.0->-r requirements_alpha.txt (line 12)) (2.6.1)
+Requirement already satisfied: aiosignal>=1.4.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from aiohttp<4.0.0,>=3.8.0->-r requirements_alpha.txt (line 12)) (1.4.0)
+Requirement already satisfied: attrs>=17.3.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from aiohttp<4.0.0,>=3.8.0->-r requirements_alpha.txt (line 12)) (25.3.0)
+Requirement already satisfied: frozenlist>=1.1.1 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from aiohttp<4.0.0,>=3.8.0->-r requirements_alpha.txt (line 12)) (1.7.0)
+Requirement already satisfied: multidict<7.0,>=4.5 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from aiohttp<4.0.0,>=3.8.0->-r requirements_alpha.txt (line 12)) (6.6.3)
+Requirement already satisfied: propcache>=0.2.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from aiohttp<4.0.0,>=3.8.0->-r requirements_alpha.txt (line 12)) (0.3.2)
+Requirement already satisfied: yarl<2.0,>=1.17.0 in c:\development\claude-echo-test\claude-echo\venv\lib\site-packages (from aiohttp<4.0.0,>=3.8.0->-r requirements_alpha.txt (line 12)) (1.20.1)
+Using cached aiofiles-23.2.1-py3-none-any.whl (15 kB)
+Using cached numpy-1.26.4-cp312-cp312-win_amd64.whl (15.5 MB)
+Downloading watchdog-3.0.0-py3-none-win_amd64.whl (82 kB)
+Installing collected packages: watchdog, numpy, aiofiles
+  Attempting uninstall: numpy
+    Found existing installation: numpy 2.3.2
+    Uninstalling numpy-2.3.2:
+      Successfully uninstalled numpy-2.3.2
+  Attempting uninstall: aiofiles
+    Found existing installation: aiofiles 24.1.0
+    Uninstalling aiofiles-24.1.0:
+      Successfully uninstalled aiofiles-24.1.0
+Successfully installed aiofiles-23.2.1 numpy-1.26.4 watchdog-3.0.0
+
+[notice] A new release of pip is available: 25.0.1 -> 25.2
+[notice] To update, run: python.exe -m pip install --upgrade pip
+[OK] Core dependencies installed successfully
+
+[5/5] Initializing project structure...
+[OK] Project structure initialized
+
+Creating Alpha test configuration...
+'import' is not recognized as an internal or external command,
+operable program or batch file.
+'import' is not recognized as an internal or external command,
+operable program or batch file.
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+'#' is not recognized as an internal or external command,
+operable program or batch file.
+'config' is not recognized as an internal or external command,
+operable program or batch file.
+''system':' is not recognized as an internal or external command,
+operable program or batch file.
+''log_level':' is not recognized as an internal or external command,
+operable program or batch file.
+''environment':' is not recognized as an internal or external command,
+operable program or batch file.
+''enable_mock_mode':' is not recognized as an internal or external command,
+operable program or batch file.
+''debug_mode':' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+''speech':' is not recognized as an internal or external command,
+operable program or batch file.
+''enabled':' is not recognized as an internal or external command,
+operable program or batch file.
+''mock_mode':' is not recognized as an internal or external command,
+operable program or batch file.
+''recognizer':' is not recognized as an internal or external command,
+operable program or batch file.
+''engine':' is not recognized as an internal or external command,
+operable program or batch file.
+''model_size':' is not recognized as an internal or external command,
+operable program or batch file.
+''language':' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+''synthesizer':' is not recognized as an internal or external command,
+operable program or batch file.
+''engine':' is not recognized as an internal or external command,
+operable program or batch file.
+''voice':' is not recognized as an internal or external command,
+operable program or batch file.
+''rate':' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+''adapters':' is not recognized as an internal or external command,
+operable program or batch file.
+''claude_code':' is not recognized as an internal or external command,
+operable program or batch file.
+''enabled':' is not recognized as an internal or external command,
+operable program or batch file.
+''mock_mode':' is not recognized as an internal or external command,
+operable program or batch file.
+''priority':' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+''agents':' is not recognized as an internal or external command,
+operable program or batch file.
+''coordinator':' is not recognized as an internal or external command,
+operable program or batch file.
+''enabled':' is not recognized as an internal or external command,
+operable program or batch file.
+''mock_mode':' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+''task_planner':' is not recognized as an internal or external command,
+operable program or batch file.
+''enabled':' is not recognized as an internal or external command,
+operable program or batch file.
+''mock_mode':' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+''event_system':' is not recognized as an internal or external command,
+operable program or batch file.
+''enabled':' is not recognized as an internal or external command,
+operable program or batch file.
+''buffer_size':' is not recognized as an internal or external command,
+operable program or batch file.
+''max_listeners_per_event':' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+'}' is not recognized as an internal or external command,
+operable program or batch file.
+'config_path' is not recognized as an internal or external command,
+operable program or batch file.
+'config_path.parent.mkdir' is not recognized as an internal or external command,
+operable program or batch file.
+'with' is not recognized as an internal or external command,
+operable program or batch file.
+'yaml.dump' is not recognized as an internal or external command,
+operable program or batch file.
+Unable to initialize device PRN
+'"' is not recognized as an internal or external command,
+operable program or batch file.
+[WARNING] Configuration creation failed, using minimal setup
+
+Testing core module imports...
+'import' is not recognized as an internal or external command,
+operable program or batch file.
+'sys.path.append' is not recognized as an internal or external command,
+operable program or batch file.
+'try:' is not recognized as an internal or external command,
+operable program or batch file.
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+'from' is not recognized as an internal or external command,
+operable program or batch file.
+Unable to initialize device PRN
+'except' is not recognized as an internal or external command,
+operable program or batch file.
+Unable to initialize device PRN
+'sys.exit' is not recognized as an internal or external command,
+operable program or batch file.
+'"' is not recognized as an internal or external command,
+operable program or batch file.
+[ERROR] Core modules import test failed
+Please check the error above and ensure all dependencies are installed
+Press any key to continue . . .

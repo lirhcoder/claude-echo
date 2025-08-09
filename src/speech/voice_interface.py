@@ -23,6 +23,7 @@ from .types import (
 from .recognizer import SpeechRecognizer
 from .synthesizer import SpeechSynthesizer
 from .intent_parser import IntentParser
+from .speech_learning_manager import SpeechLearningManager
 
 
 class VoiceState(Enum):
@@ -74,6 +75,7 @@ class VoiceInterface:
         self._recognizer: Optional[SpeechRecognizer] = None
         self._synthesizer: Optional[SpeechSynthesizer] = None
         self._intent_parser: Optional[IntentParser] = None
+        self._learning_manager: Optional[SpeechLearningManager] = None
         
         # State management
         self._state = VoiceState.IDLE
@@ -97,6 +99,11 @@ class VoiceInterface:
         self._auto_listen = False
         self._continuous_mode = False
         self._silence_timeout = 3.0  # seconds
+        
+        # Learning configuration
+        self._learning_enabled = self.config.get('learning_enabled', True) if hasattr(self, 'config') else True
+        self._adaptive_recognition = self.config.get('adaptive_recognition', True) if hasattr(self, 'config') else True
+        self._current_user_id = None  # Will be set when user context is available
         
         logger.info(f"VoiceInterface initialized with session: {self._session_id}")
     
@@ -129,6 +136,20 @@ class VoiceInterface:
             
             # Initialize intent parser
             self._intent_parser = IntentParser(event_system=self.event_system)
+            
+            # Initialize learning manager if enabled
+            if self._learning_enabled:
+                self._learning_manager = SpeechLearningManager(
+                    event_system=self.event_system,
+                    config=getattr(self, 'config', {}).get('learning_config', {})
+                )
+                
+                if not await self._learning_manager.initialize():
+                    logger.warning("Failed to initialize learning manager - continuing without learning")
+                    self._learning_manager = None
+                    self._learning_enabled = False
+                else:
+                    logger.info("Speech learning system initialized")
             
             # Start processing pipeline
             self._processing_task = asyncio.create_task(self._process_voice_pipeline())
@@ -163,6 +184,9 @@ class VoiceInterface:
             
             if self._synthesizer:
                 await self._synthesizer.cleanup()
+            
+            if self._learning_manager:
+                await self._learning_manager.cleanup()
             
             # Clear context and statistics
             self._conversation_context.clear()
@@ -286,8 +310,28 @@ class VoiceInterface:
         try:
             start_time = time.time()
             
-            # Recognize speech from buffer
-            recognition_result = await self._recognizer.recognize_from_buffer(duration)
+            # Use adaptive recognition if available and user is identified
+            if self._learning_manager and self._current_user_id and self._adaptive_recognition:
+                # Get context hint from conversation
+                context_hint = self._infer_context_from_conversation()
+                
+                # Use adaptive recognition
+                adaptive_result = await self._learning_manager.recognize_speech(
+                    user_id=self._current_user_id,
+                    duration=duration,
+                    context=context_hint
+                )
+                
+                if adaptive_result:
+                    # Convert adaptive result back to RecognitionResult format
+                    recognition_result = self._convert_adaptive_result(adaptive_result)
+                else:
+                    # Fall back to base recognition
+                    recognition_result = await self._recognizer.recognize_from_buffer(duration)
+            else:
+                # Standard recognition
+                recognition_result = await self._recognizer.recognize_from_buffer(duration)
+            
             if not recognition_result:
                 logger.warning("No speech recognized from buffer")
                 return None
@@ -640,7 +684,123 @@ class VoiceInterface:
     async def set_context(self, context: Context) -> None:
         """Set current system context."""
         self._current_context = context
+        
+        # Extract user ID from context if available
+        if hasattr(context, 'user_id') and context.user_id:
+            self._current_user_id = context.user_id
+            logger.info(f"User ID set to: {self._current_user_id}")
+        
         logger.info(f"Context updated for session: {self._session_id}")
+    
+    async def set_user_id(self, user_id: str) -> None:
+        """Set current user ID for personalization."""
+        self._current_user_id = user_id
+        logger.info(f"User ID set to: {user_id}")
+    
+    def _infer_context_from_conversation(self) -> Optional[str]:
+        """Infer context from recent conversation history."""
+        if not self._conversation_context:
+            return None
+        
+        # Look at recent intents to infer context
+        recent_intents = [entry.get('intent_type') for entry in self._conversation_context[-3:]]
+        
+        # Map intent types to contexts
+        intent_context_map = {
+            'coding_request': 'programming',
+            'file_operation': 'file_ops',
+            'system_control': 'system',
+            'application_control': 'application',
+            'query_request': 'query',
+            'navigation_request': 'navigation'
+        }
+        
+        # Find most common recent context
+        contexts = [intent_context_map.get(intent) for intent in recent_intents if intent]
+        if contexts:
+            from collections import Counter
+            most_common = Counter(contexts).most_common(1)
+            return most_common[0][0] if most_common else None
+        
+        return None
+    
+    def _convert_adaptive_result(self, adaptive_result: Dict[str, Any]) -> RecognitionResult:
+        """Convert adaptive recognition result to RecognitionResult format."""
+        from .types import RecognitionResult
+        
+        return RecognitionResult(
+            text=adaptive_result.get('text', ''),
+            confidence=adaptive_result.get('confidence', 0.0),
+            language=adaptive_result.get('language', 'unknown'),
+            processing_time=adaptive_result.get('processing_time', 0.0),
+            audio_duration=adaptive_result.get('audio_duration', 0.0),
+            model_used=adaptive_result.get('model_used', 'unknown'),
+            alternative_texts=adaptive_result.get('alternative_texts', []),
+            word_timestamps=adaptive_result.get('word_timestamps', [])
+        )
+    
+    async def provide_user_feedback(self, 
+                                  original_text: str,
+                                  corrected_text: Optional[str] = None,
+                                  satisfaction_rating: Optional[int] = None) -> bool:
+        """Provide user feedback to improve recognition."""
+        if not self._learning_manager or not self._current_user_id:
+            logger.warning("Cannot provide feedback: learning not available or no user ID")
+            return False
+        
+        try:
+            context = self._infer_context_from_conversation()
+            
+            success = await self._learning_manager.provide_user_feedback(
+                user_id=self._current_user_id,
+                original_text=original_text,
+                corrected_text=corrected_text,
+                satisfaction_rating=satisfaction_rating,
+                context=context
+            )
+            
+            if success:
+                logger.info("User feedback provided for learning improvement")
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"Failed to provide user feedback: {e}")
+            return False
+    
+    async def get_user_profile(self) -> Optional[Dict[str, Any]]:
+        """Get current user's voice profile."""
+        if not self._learning_manager or not self._current_user_id:
+            return None
+        
+        try:
+            return await self._learning_manager.get_user_profile(self._current_user_id)
+        except Exception as e:
+            logger.error(f"Failed to get user profile: {e}")
+            return None
+    
+    async def trigger_learning_session(self) -> Dict[str, Any]:
+        """Trigger a manual learning session for the current user."""
+        if not self._learning_manager:
+            return {'success': False, 'message': 'Learning system not available'}
+        
+        try:
+            return await self._learning_manager.trigger_learning_session(self._current_user_id)
+        except Exception as e:
+            logger.error(f"Learning session failed: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    def get_learning_statistics(self) -> Dict[str, Any]:
+        """Get learning system statistics."""
+        if not self._learning_manager:
+            return {'learning_enabled': False}
+        
+        try:
+            import asyncio
+            return asyncio.run(self._learning_manager.get_system_statistics())
+        except Exception as e:
+            logger.error(f"Failed to get learning statistics: {e}")
+            return {'error': str(e)}
 
 
 class VoiceInterfaceAdapter(BaseAdapter):
@@ -702,7 +862,12 @@ class VoiceInterfaceAdapter(BaseAdapter):
             "get_state",
             "get_context",
             "get_statistics",
-            "set_context"
+            "set_context",
+            "set_user_id",
+            "provide_user_feedback",
+            "get_user_profile",
+            "trigger_learning_session",
+            "get_learning_statistics"
         ]
     
     async def initialize(self) -> bool:
@@ -811,6 +976,63 @@ class VoiceInterfaceAdapter(BaseAdapter):
                         success=False,
                         error="context parameter required"
                     )
+            
+            elif command == "set_user_id":
+                user_id = parameters.get('user_id')
+                if not user_id:
+                    return CommandResult(
+                        success=False,
+                        error="user_id parameter required"
+                    )
+                
+                await self._voice_interface.set_user_id(user_id)
+                return CommandResult(
+                    success=True,
+                    data={'user_id': user_id}
+                )
+            
+            elif command == "provide_user_feedback":
+                original_text = parameters.get('original_text')
+                if not original_text:
+                    return CommandResult(
+                        success=False,
+                        error="original_text parameter required"
+                    )
+                
+                corrected_text = parameters.get('corrected_text')
+                satisfaction_rating = parameters.get('satisfaction_rating')
+                
+                success = await self._voice_interface.provide_user_feedback(
+                    original_text=original_text,
+                    corrected_text=corrected_text,
+                    satisfaction_rating=satisfaction_rating
+                )
+                
+                return CommandResult(
+                    success=success,
+                    data={'feedback_processed': success}
+                )
+            
+            elif command == "get_user_profile":
+                profile = await self._voice_interface.get_user_profile()
+                return CommandResult(
+                    success=profile is not None,
+                    data={'user_profile': profile}
+                )
+            
+            elif command == "trigger_learning_session":
+                result = await self._voice_interface.trigger_learning_session()
+                return CommandResult(
+                    success=result.get('success', False),
+                    data=result
+                )
+            
+            elif command == "get_learning_statistics":
+                stats = self._voice_interface.get_learning_statistics()
+                return CommandResult(
+                    success=True,
+                    data=stats
+                )
             
             else:
                 return CommandResult(

@@ -1,0 +1,189 @@
+# Learning System Configuration
+# Configuration for the intelligent learning and adaptation system
+
+learning:
+  # Global learning system settings
+  enabled: true
+  
+  # Learning Data Manager Configuration
+  data_manager:
+    db_path: "./data/learning.db"
+    encryption_enabled: true
+    encryption_key_file: "./data/encryption.key"
+    default_retention_days: 365
+    cleanup_interval_hours: 24
+    cache_size: 1000
+    batch_size: 100
+  
+  # Base Learner Configuration
+  base_learner:
+    model_save_interval: 300  # seconds (5 minutes)
+    default_timeout: 30.0
+    max_errors: 10
+  
+  # Specific Learner Configurations
+  learners:
+    # Adaptive Behavior Learner
+    adaptive_behavior:
+      enabled: true
+      learning_mode: "online"
+      batch_size: 100
+      learning_rate: 0.01
+      adaptation_threshold: 0.7
+      model_path: "./models/adaptive_behavior"
+    
+    # User Preference Learner
+    user_preference_learner:
+      enabled: true
+      learning_mode: "batch"
+      preference_threshold: 0.6
+      pattern_window_days: 30
+      min_interactions: 5
+      model_path: "./models/user_preferences"
+  
+  # Adaptive Behavior Manager Configuration
+  adaptive_behavior:
+    analysis_interval: 1800  # 30 minutes
+    adaptation_interval: 3600  # 1 hour
+    
+    # Pattern detection thresholds
+    pattern_thresholds:
+      confidence_threshold: 0.7
+      frequency_threshold: 3
+      impact_threshold: 0.1
+    
+    # Strategy management
+    strategy_config:
+      max_active_strategies: 20
+      strategy_timeout: 7200  # 2 hours
+      performance_review_interval: 86400  # 24 hours
+  
+  # Privacy and Security Settings
+  privacy:
+    # Data retention policies by privacy level
+    retention_policies:
+      public: 730      # 2 years
+      internal: 365    # 1 year
+      private: 180     # 6 months
+      confidential: 90 # 3 months
+    
+    # Encryption settings
+    encryption:
+      algorithm: "fernet"  # Symmetric encryption
+      key_rotation_days: 90
+      secure_deletion: true
+    
+    # Access control
+    access_control:
+      audit_logging: true
+      user_data_isolation: true
+      cross_user_access: false
+  
+  # Performance and Monitoring
+  performance:
+    # Background task intervals
+    background_tasks:
+      model_save_interval: 300     # 5 minutes
+      performance_monitoring: 60   # 1 minute
+      cache_cleanup: 3600         # 1 hour
+      statistics_update: 300      # 5 minutes
+    
+    # Resource limits
+    resource_limits:
+      max_memory_mb: 1024
+      max_cache_entries: 10000
+      max_learning_data_per_user: 50000
+    
+    # Performance thresholds for alerting
+    alert_thresholds:
+      learning_failure_rate: 0.1  # 10%
+      response_time_ms: 5000       # 5 seconds
+      memory_usage_percent: 80     # 80%
+      error_rate: 0.05             # 5%
+
+# Session Manager Learning Integration
+session_manager:
+  learning:
+    enabled: true
+    capture_interactions: true
+    analysis_interval: 3600  # 1 hour
+    
+    # Data capture settings
+    data_capture:
+      session_updates: true
+      task_completions: true
+      user_preferences: true
+      interaction_patterns: true
+    
+    # Adaptation settings
+    adaptation:
+      timeout_adjustment: true
+      persistence_optimization: true
+      response_personalization: true
+
+# Agent Learning Configuration
+agents:
+  # Enable learning for specific agents
+  coordinator:
+    learning_enabled: true
+    capture_collaborations: true
+    learn_routing_patterns: true
+  
+  task_planner:
+    learning_enabled: true
+    capture_planning_decisions: true
+    learn_optimization_patterns: true
+  
+  presence_monitor:
+    learning_enabled: true
+    capture_presence_patterns: true
+    learn_availability_prediction: true
+
+# Development and Testing
+development:
+  # Enable additional debugging and logging
+  debug_mode: true
+  verbose_logging: true
+  
+  # Mock data generation for testing
+  mock_data:
+    enabled: false
+    user_count: 10
+    interactions_per_user: 100
+    time_span_days: 30
+  
+  # Testing configuration
+  testing:
+    use_test_database: true
+    test_data_retention_days: 7
+    disable_encryption: true  # For easier testing
+    fast_intervals: true      # Shorter intervals for testing
+
+# Production specific settings
+production:
+  # Security hardening
+  security:
+    strict_encryption: true
+    audit_all_access: true
+    data_anonymization: true
+  
+  # Performance optimization
+  performance:
+    connection_pooling: true
+    query_optimization: true
+    aggressive_caching: true
+  
+  # Monitoring and alerting
+  monitoring:
+    metrics_collection: true
+    performance_alerts: true
+    health_checks: true
+    dashboard_enabled: true
+
+# Feature flags for gradual rollout
+feature_flags:
+  user_preference_learning: true
+  adaptive_behavior_system: true
+  predictive_assistance: false  # Not ready yet
+  cross_user_insights: false    # Privacy concerns
+  advanced_analytics: false     # Future feature

@@ -1,0 +1,299 @@
+# Claude Voice Assistant - 真实语音测试配置
+# Real Voice Testing Configuration
+
+system:
+  log_level: INFO
+  environment: voice_testing
+  enable_mock_mode: false  # 启用真实语音功能
+  debug_mode: true
+
+# Speech Configuration (启用真实语音)
+speech:
+  enabled: true  # 启用语音功能
+  mock_mode: false  # 关闭模拟模式
+  
+  recognizer:
+    engine: "whisper"  # 使用Whisper引擎
+    model_size: "base"  # 使用base模型，平衡速度和准确率
+    language: "auto"    # 自动检测语言
+    confidence_threshold: 0.7
+    
+    # Whisper特定配置
+    whisper:
+      model_path: null  # 使用默认模型
+      device: "auto"    # 自动选择CPU/GPU
+      compute_type: "default"
+      beam_size: 5
+      
+  synthesizer:
+    engine: "pyttsx3"   # 使用pyttsx3引擎
+    voice: "default"
+    rate: 200
+    volume: 0.8
+    
+    # 语音合成优化
+    pyttsx3:
+      voice_id: null    # 使用默认语音
+      
+  # 音频配置
+  audio:
+    sample_rate: 16000
+    channels: 1
+    chunk_size: 1024
+    input_device: null  # 使用默认麦克风
+    output_device: null # 使用默认扬声器
+    
+  # 语音处理优化
+  processing:
+    noise_reduction: true
+    auto_gain_control: true
+    echo_cancellation: false
+    
+  # 学习功能配置
+  learning:
+    enabled: true
+    voice_profile_learning: true
+    pronunciation_adaptation: true
+    personal_vocabulary: true
+    correction_learning: true
+    
+    # 学习数据存储
+    data_directory: "./data/voice_learning"
+    max_voice_samples: 1000
+    learning_rate: 0.1
+    adaptation_threshold: 0.8
+
+# 智能学习系统配置
+learning:
+  enabled: true
+  
+  # 语音学习配置
+  voice_learning:
+    enabled: true
+    profile_learning: true
+    pronunciation_adaptation: true
+    accent_adaptation: true
+    context_learning: true
+    
+    # 学习算法参数
+    algorithms:
+      voice_profile:
+        min_samples: 10
+        max_samples: 100
+        confidence_threshold: 0.8
+      
+      pronunciation_pattern:
+        pattern_window: 5
+        similarity_threshold: 0.7
+        
+      accent_adaptation:
+        adaptation_rate: 0.1
+        max_adaptations: 50
+        
+  # 用户习惯学习
+  habit_learning:
+    enabled: true
+    command_frequency: true
+    sequence_learning: true
+    personal_vocabulary: true
+    
+  # 错误纠正学习
+  correction_learning:
+    enabled: true
+    interactive_correction: true
+    pattern_learning: true
+    confidence_adjustment: true
+
+# 多用户支持
+multi_user:
+  enabled: true
+  voice_identification: true
+  profile_isolation: true
+  
+  # 用户识别配置
+  identification:
+    voice_embedding_model: "resemblyzer"
+    similarity_threshold: 0.8
+    enrollment_samples: 5
+    
+  # 数据隔离
+  data_isolation:
+    separate_profiles: true
+    encrypted_storage: true
+    privacy_level: "high"
+
+# Adapter Configuration
+adapters:
+  # Claude Code Adapter
+  claude_code:
+    enabled: true
+    mock_mode: false
+    priority: 100
+    
+    mcp:
+      timeout: 30.0
+      max_retries: 3
+      mock_responses: false
+    
+    security:
+      allowed_operations: ["read", "write", "create", "analyze", "generate"]
+      restricted_operations: ["delete", "system_command"]
+      require_confirmation: ["delete_file", "system_command"]
+      
+  # Voice Interface Adapter (启用)
+  voice_interface:
+    enabled: true
+    mock_mode: false
+    priority: 90
+
+# Event System
+events:
+  enabled: true
+  buffer_size: 200
+  max_listeners_per_event: 20
+  enable_history: true
+  history_limit: 2000
+  
+  # 学习相关事件
+  learning_events:
+    voice_learning: true
+    user_correction: true
+    profile_update: true
+    habit_change: true
+
+# Security Settings (宽松一些用于测试)
+security:
+  risk_levels:
+    low: ["read_file", "list_directory", "get_project_info", "generate_code"]
+    medium: ["edit_file", "create_file", "run_tests", "search_code"]
+    high: ["delete_file", "system_command", "install_package"]
+    critical: ["format_drive", "network_access", "admin_command"]
+  
+  policies:
+    voice_testing: ["low", "medium", "high"]  # 允许更多操作用于测试
+    user_confirmation: ["critical"]
+    
+  # 文件保护
+  protected_files:
+    - ".git/**"
+    - "*.bat"
+    - "*.sh"
+    - "requirements*.txt"
+
+# Logging Configuration
+logging:
+  level: DEBUG  # 详细日志用于调试
+  file: "./logs/voice_test.log"
+  max_file_size: "20MB"
+  backup_count: 5
+  
+  # 模块日志级别
+  modules:
+    core: INFO
+    adapters: INFO
+    speech: DEBUG  # 语音模块详细日志
+    agents: INFO
+    learning: DEBUG  # 学习模块详细日志
+    
+  # 语音测试专用日志
+  voice_testing:
+    log_recognition_results: true
+    log_synthesis_requests: true
+    log_learning_updates: true
+    log_user_corrections: true
+    log_performance_metrics: true
+
+# Performance Settings
+performance:
+  max_concurrent_operations: 5
+  operation_timeout: 60  # 语音处理需要更长时间
+  memory_limit: "2GB"    # 语音处理需要更多内存
+  
+  # 语音处理性能
+  speech_performance:
+    recognition_timeout: 10  # 语音识别超时
+    synthesis_timeout: 5     # 语音合成超时
+    max_audio_length: 30     # 最大音频长度(秒)
+    
+  # 学习系统性能
+  learning_performance:
+    batch_size: 10
+    update_frequency: 5  # 每5个样本更新一次
+    cache_size: 1000
+
+# Agent Configuration (启用学习相关Agent)
+agents:
+  # 核心Agent
+  coordinator:
+    enabled: true
+    mock_mode: false
+    
+  task_planner:
+    enabled: true
+    mock_mode: false
+    
+  auto_worker:
+    enabled: true
+    mock_mode: false
+    
+  security_guardian:
+    enabled: true
+    strict_mode: false  # 放松限制用于测试
+    
+  presence_monitor:
+    enabled: true
+    mock_mode: false
+    
+  handover_manager:
+    enabled: true
+    mock_mode: false
+    
+  session_manager:
+    enabled: true
+    mock_mode: false
+    
+  # 学习相关Agent
+  learning_agent:
+    enabled: true
+    learning_strategies: ["reactive", "proactive", "adaptive"]
+    
+  user_profile_agent:
+    enabled: true
+    voice_identification: true
+    profile_management: true
+    
+  correction_agent:
+    enabled: true
+    interactive_correction: true
+    pattern_learning: true
+
+# 语音测试配置
+voice_testing:
+  # 测试模式
+  interactive_mode: true
+  auto_start_listening: false
+  continuous_listening: false
+  
+  # 测试场景
+  test_scenarios:
+    - voice_recognition
+    - command_execution
+    - code_generation
+    - error_correction
+    - user_learning
+    - multi_user_switching
+    
+  # 测试数据收集
+  collect_metrics: true
+  save_audio_samples: false  # 出于隐私考虑默认关闭
+  performance_monitoring: true
+  
+  # 用户反馈
+  enable_feedback: true
+  feedback_after_commands: true
+  correction_interface: true
+  
+  # 学习效果追踪
+  track_learning_progress: true
+  show_accuracy_improvements: true
+  learning_statistics: true

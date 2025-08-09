@@ -1,0 +1,223 @@
+# Speech Learning System Configuration
+# Comprehensive configuration for the personalized speech learning engine
+
+# Global speech learning settings
+learning:
+  enabled: true
+  auto_adaptation: true
+  real_time_learning: true
+  privacy_mode: false
+  multi_user_support: true
+  
+# Adaptive recognition configuration
+adaptive_recognition:
+  enabled: true
+  adaptation_strength: 0.3  # 0.0 to 1.0
+  confidence_boost_threshold: 0.7
+  real_time_adaptation: true
+  fallback_to_base: true
+
+# Voice profile learning configuration
+voice_profile_learning:
+  enabled: true
+  learning_mode: "online"  # online, batch, unsupervised
+  min_samples_for_update: 5
+  feature_smoothing_factor: 0.1
+  outlier_threshold: 2.0  # standard deviations
+  profile_update_interval: 100  # samples
+  
+  # Audio analysis settings
+  sample_rate: 16000
+  hop_length: 512
+  frame_length: 2048
+  min_audio_duration: 1.0  # seconds
+  max_audio_duration: 30.0  # seconds
+  
+  # Model storage
+  model_path: "./models/voice_profiles"
+  model_save_interval: 300  # seconds
+
+# Pronunciation pattern learning configuration  
+pronunciation_learning:
+  enabled: true
+  learning_mode: "supervised"  # online, supervised, reinforcement
+  min_error_frequency: 3
+  similarity_threshold: 0.8
+  phonetic_distance_threshold: 0.7
+  correction_confidence_threshold: 0.6
+  max_patterns_per_user: 500
+  
+  # Pattern consolidation
+  pattern_consolidation_interval: 1000  # samples
+  low_priority_threshold: 0.1
+  pattern_expiry_days: 90
+
+# Accent adaptation learning configuration
+accent_learning:
+  enabled: true
+  learning_mode: "unsupervised"  # online, batch, unsupervised
+  min_samples_for_accent_detection: 10
+  accent_confidence_threshold: 0.7
+  feature_smoothing_factor: 0.15
+  clustering_min_samples: 5
+  max_accent_categories: 5
+  
+  # Feature extraction
+  spectral_analysis: true
+  prosodic_analysis: true
+  formant_analysis: true
+  rhythm_analysis: true
+
+# Speech context learning configuration
+context_learning:
+  enabled: true
+  learning_mode: "batch"  # online, supervised, batch
+  min_pattern_frequency: 3
+  context_similarity_threshold: 0.7
+  vocab_learning_threshold: 5
+  
+  # Context categories
+  supported_contexts:
+    - "programming"
+    - "file_operations" 
+    - "system_commands"
+    - "general_queries"
+    - "navigation"
+
+# Data management configuration
+data_management:
+  encryption_enabled: true
+  default_retention_days: 365
+  cleanup_interval_hours: 24
+  cache_size: 1000
+  batch_size: 100
+  
+  # Database settings
+  db_path: "./data/speech_learning.db"
+  encryption_key_file: "./data/encryption.key"
+  
+  # Privacy levels
+  default_privacy_level: "private"  # public, internal, private, confidential
+
+# Performance and monitoring
+monitoring:
+  performance_tracking: true
+  statistics_update_interval: 300  # seconds
+  learning_session_logging: true
+  adaptation_effectiveness_tracking: true
+  
+  # Metrics collection
+  collect_accuracy_metrics: true
+  collect_latency_metrics: true
+  collect_user_satisfaction: true
+
+# Integration settings
+integration:
+  event_system_integration: true
+  agent_system_integration: true
+  
+  # Event types to emit
+  learning_events:
+    - "model_updated"
+    - "adaptation_applied"
+    - "pattern_learned"
+    - "user_feedback_received"
+    - "learning_session_completed"
+
+# User interface and feedback
+user_interface:
+  feedback_collection: true
+  satisfaction_rating: true  # 1-5 scale
+  correction_interface: true
+  profile_visibility: true
+  
+  # Feedback prompts
+  prompt_for_corrections: true
+  prompt_frequency: "adaptive"  # never, low, medium, high, adaptive
+
+# Advanced features
+advanced:
+  # Multi-language support
+  multilingual_support: true
+  supported_languages:
+    - "zh"  # Chinese
+    - "en"  # English
+    - "mixed"  # Code-switching
+  
+  # Noise handling
+  noise_adaptation: true
+  environmental_awareness: false
+  
+  # Cross-session learning
+  cross_session_learning: true
+  session_boundary_detection: true
+  
+  # Collaborative learning (anonymized)
+  collaborative_learning: false
+  federated_learning: false
+
+# Model configurations
+models:
+  # Base recognition model
+  base_recognition:
+    model: "base"  # tiny, base, small, medium, large
+    language: "auto"
+    use_gpu: false
+    beam_size: 5
+    temperature: 0.0
+    
+  # Voice characteristics model
+  voice_model:
+    feature_dimensions: 64
+    hidden_layers: [128, 64, 32]
+    activation: "relu"
+    dropout_rate: 0.2
+    
+  # Pronunciation model
+  pronunciation_model:
+    similarity_algorithm: "edit_distance"
+    phonetic_mapping: true
+    context_aware: true
+    
+  # Accent model
+  accent_model:
+    clustering_algorithm: "dbscan"  # dbscan, kmeans
+    feature_normalization: true
+    template_matching: true
+    
+  # Context model
+  context_model:
+    classifier: "naive_bayes"  # naive_bayes, svm, neural_network
+    vectorizer: "tfidf"
+    max_features: 1000
+
+# Resource limits
+resources:
+  max_memory_usage_mb: 2048
+  max_storage_usage_mb: 10240
+  max_concurrent_users: 100
+  processing_timeout: 30  # seconds
+  
+  # Learning limits
+  max_learning_sessions_per_hour: 10
+  max_patterns_per_session: 50
+  max_feedback_per_day: 100
+
+# Development and testing
+development:
+  debug_mode: false
+  verbose_logging: false
+  mock_data_generation: false
+  test_mode: false
+  
+  # Testing parameters
+  synthetic_data_generation: false
+  performance_benchmarking: false
+  a_b_testing: false
+
+# Backward compatibility
+compatibility:
+  legacy_support: true
+  migration_support: true
+  api_versioning: true
+  graceful_degradation: true

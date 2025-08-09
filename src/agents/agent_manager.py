@@ -30,6 +30,11 @@ from .agent_types import (
 from .coordinator import Coordinator
 from .task_planner import TaskPlanner
 
+# Import learning agents
+from .learning_agent import LearningAgent
+from .user_profile_agent import UserProfileAgent
+from .correction_agent import CorrectionAgent
+
 
 class AgentManagerStatus(Enum):
     """Status of the agent manager"""
@@ -104,6 +109,11 @@ class AgentManager:
         self._agent_classes: Dict[AgentType, Type[BaseAgent]] = {
             AgentType.COORDINATOR: Coordinator,
             AgentType.TASK_PLANNER: TaskPlanner,
+            
+            # Learning system agents
+            AgentType.LEARNING_AGENT: LearningAgent,
+            AgentType.USER_PROFILE_AGENT: UserProfileAgent,
+            AgentType.CORRECTION_AGENT: CorrectionAgent,
             # Add other agents as they are implemented
         }
         
@@ -487,7 +497,12 @@ class AgentManager:
             'auto_worker': AgentType.AUTO_WORKER,
             'security_guardian': AgentType.SECURITY_GUARDIAN,
             'handover_manager': AgentType.HANDOVER_MANAGER,
-            'session_manager': AgentType.SESSION_MANAGER
+            'session_manager': AgentType.SESSION_MANAGER,
+            
+            # Learning system agents
+            'learning_agent': AgentType.LEARNING_AGENT,
+            'user_profile_agent': AgentType.USER_PROFILE_AGENT,
+            'correction_agent': AgentType.CORRECTION_AGENT
         }
         return name_mapping.get(agent_name, AgentType.COORDINATOR)
     
