@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-语音到Claude Code命令桥接器
-Voice-to-Claude Code Command Bridge
-
-将语音识别结果直接作为命令输入到Claude Code CLI
+语音到Claude Code命令桥接器 (修复版)
+使用文件重定向方式解决交互模式问题
 """
 
 import asyncio
@@ -23,26 +22,26 @@ import json
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 class VoiceToClaudeCommand:
-    """语音到Claude Code命令的桥接器"""
+    """语音到Claude Code命令的桥接器 (修复版)"""
     
     def __init__(self):
         self.is_recording = False
         self.audio_queue = queue.Queue()
         self.command_history = []
-        self.claude_process = None
+        self.claude_available = False
         
     def print_banner(self):
         """显示启动横幅"""
         print("=" * 70)
-        print("🎤 CLAUDE CODE 语音命令桥接器".center(70))
+        print("CLAUDE CODE 语音命令桥接器 (修复版)".center(70))
         print("=" * 70)
         print()
-        print("📝 功能说明:")
+        print("功能说明:")
         print("  - 语音识别后直接发送到Claude Code CLI")
         print("  - 支持实时语音命令执行")
-        print("  - 保持Claude Code会话状态")
+        print("  - 使用文件重定向确保稳定连接")
         print()
-        print("🎯 使用方法:")
+        print("使用方法:")
         print("  1. 按 'r' + Enter 开始录音")
         print("  2. 清晰说出命令，如：'创建一个Python文件'")
         print("  3. 系统自动识别并发送到Claude Code")
@@ -52,21 +51,21 @@ class VoiceToClaudeCommand:
         
     def check_dependencies(self):
         """检查必要依赖"""
-        print("🔍 检查系统依赖...")
+        print("[检查] 系统依赖...")
         
         try:
             import whisper
-            print("   ✅ Whisper - 已安装")
+            print("   [OK] Whisper - 已安装")
         except ImportError:
-            print("   ❌ Whisper - 未安装")
+            print("   [NO] Whisper - 未安装")
             print("请运行: pip install openai-whisper")
             return False
             
         try:
             import pyaudio
-            print("   ✅ PyAudio - 已安装")
+            print("   [OK] PyAudio - 已安装")
         except ImportError:
-            print("   ❌ PyAudio - 未安装")
+            print("   [NO] PyAudio - 未安装")
             print("请运行: pip install pyaudio")
             return False
             
@@ -77,6 +76,7 @@ class VoiceToClaudeCommand:
             if result.returncode == 0:
                 print("   [OK] Claude Code CLI - 已安装")
                 print(f"   版本: {result.stdout.strip()}")
+                self.claude_available = True
                 return True
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pass
@@ -88,25 +88,26 @@ class VoiceToClaudeCommand:
                 result = subprocess.run([sys.executable, str(mock_path), '--version'], 
                                       capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
-                    print("   ✅ Claude Code CLI (模拟版) - 可用于测试")
+                    print("   [OK] Claude Code CLI (模拟版) - 可用于测试")
+                    self.claude_available = "mock"
                     return True
         except Exception:
             pass
             
-        print("   ❌ Claude Code CLI - 未找到")
+        print("   [NO] Claude Code CLI - 未找到")
         print("请确保Claude Code CLI已安装或使用模拟版本测试")
         return False
             
     def init_whisper(self):
         """初始化Whisper模型"""
-        print("🧠 初始化语音识别模型...")
+        print("[加载] 语音识别模型...")
         try:
             import whisper
             self.model = whisper.load_model("base")
-            print("✅ Whisper模型加载成功")
+            print("[OK] Whisper模型加载成功")
             return True
         except Exception as e:
-            print(f"❌ Whisper模型加载失败: {e}")
+            print(f"[NO] Whisper模型加载失败: {e}")
             return False
             
     def record_audio(self, duration=5):
@@ -122,7 +123,7 @@ class VoiceToClaudeCommand:
             
             audio = pyaudio.PyAudio()
             
-            print(f"🔴 开始录音 ({duration}秒)...")
+            print(f"[录音] 开始录音 ({duration}秒)...")
             print("请开始说话...")
             
             # 开始录音
@@ -148,9 +149,9 @@ class VoiceToClaudeCommand:
                 # 显示进度
                 progress = (i + 1) / (int(RATE / CHUNK * duration))
                 volume_bar = '|' * min(10, volume // 1000)
-                print(f"\r🔴 录音进度: {'=' * int(progress * 20)} {progress * 100:.0f}% 音量:{volume_bar:<10}", end="")
+                print(f"\\r[录音] 进度: {'=' * int(progress * 20)} {progress * 100:.0f}% 音量:{volume_bar:<10}", end="")
             
-            print(f"\n⏹️ 录音完成 (最大音量: {max_volume})")
+            print(f"\\n[完成] 录音结束 (最大音量: {max_volume})")
             
             stream.stop_stream()
             stream.close()
@@ -159,7 +160,7 @@ class VoiceToClaudeCommand:
             return frames, RATE, CHANNELS, FORMAT, audio.get_sample_size(FORMAT)
             
         except Exception as e:
-            print(f"❌ 录音失败: {e}")
+            print(f"[NO] 录音失败: {e}")
             return None
             
     def transcribe_audio(self, frames, rate, channels, format, sample_width):
@@ -174,7 +175,7 @@ class VoiceToClaudeCommand:
                 wf.writeframes(b''.join(frames))
                 wf.close()
                 
-                print("🧠 正在识别语音...")
+                print("[识别] 正在识别语音...")
                 
                 # 使用Whisper识别
                 result = self.model.transcribe(
@@ -206,148 +207,97 @@ class VoiceToClaudeCommand:
                 return text, avg_confidence
                 
         except Exception as e:
-            print(f"❌ 语音识别失败: {e}")
+            print(f"[NO] 语音识别失败: {e}")
             return None, 0.0
             
     def send_to_claude_code(self, command):
-        """将命令发送到Claude Code CLI"""
+        """将命令发送到Claude Code CLI (使用文件重定向)"""
         try:
-            print(f"📤 发送命令到Claude Code: '{command}'")
+            print(f"[发送] 命令到Claude Code: '{command}'")
             
-            # 优先尝试真实的Claude CLI
-            use_shell = False
-            claude_cmd = 'claude'
+            # 创建临时命令文件
+            temp_file = f"claude_cmd_{int(time.time())}.txt"
             
             try:
-                # 测试真实Claude CLI
-                result = subprocess.run('claude --version', capture_output=True, 
-                                      timeout=2, shell=True, text=True)
-                if result.returncode == 0:
-                    use_shell = True
+                # 写入命令到临时文件
+                with open(temp_file, 'w', encoding='utf-8') as f:
+                    f.write(command)
+                
+                # 根据Claude可用性选择执行方式
+                if self.claude_available == True:
+                    # 使用真实Claude CLI
+                    cmd = f'claude < {temp_file}'
                     print("   [使用] 真实Claude Code CLI")
-                else:
-                    raise FileNotFoundError()
-            except (subprocess.TimeoutExpired, FileNotFoundError):
-                # 使用模拟版本
-                mock_path = Path(__file__).parent / "claude_mock.py"
-                if mock_path.exists():
-                    claude_cmd = f'"{sys.executable}" "{mock_path}"'
-                    use_shell = True
+                elif self.claude_available == "mock":
+                    # 使用模拟版本
+                    mock_path = Path(__file__).parent / "claude_mock.py"
+                    cmd = f'"{sys.executable}" "{mock_path}" < {temp_file}'
                     print("   [使用] 模拟版本进行测试")
                 else:
-                    print("   [错误] Claude CLI和模拟版本都不可用")
+                    print("   [错误] Claude CLI不可用")
                     return False
-            
-            # 启动Claude Code进程并发送命令
-            full_cmd = f'{claude_cmd}'
-            process = subprocess.Popen(
-                full_cmd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                shell=use_shell,
-                bufsize=1,
-                universal_newlines=True
-            )
-            
-            # 发送命令
-            process.stdin.write(command + '\n')
-            process.stdin.flush()
-            
-            # 设置超时读取响应
-            import threading
-            import queue
-            
-            def read_output(pipe, q):
+                
+                # 执行命令
+                result = subprocess.run(cmd, capture_output=True, text=True, 
+                                      shell=True, timeout=20, encoding='utf-8', errors='ignore')
+                
+                print("   [响应] Claude Code响应:")
+                print("-" * 50)
+                
+                if result.stdout:
+                    # 显示响应内容
+                    lines = result.stdout.strip().split('\\n')
+                    for i, line in enumerate(lines[:20], 1):  # 显示前20行
+                        if line.strip():  # 只显示非空行
+                            print(f"   {i:2d}. {line.strip()}")
+                    if len(lines) > 20:
+                        print(f"   ... (还有 {len(lines)-20} 行)")
+                else:
+                    print("   (无响应内容)")
+                
+                if result.stderr:
+                    print(f"   [警告] {result.stderr}")
+                
+                print("-" * 50)
+                
+                # 记录命令历史
+                self.command_history.append({
+                    'timestamp': datetime.now(),
+                    'command': command,
+                    'response_lines': len(result.stdout.split('\\n')) if result.stdout else 0,
+                    'success': result.returncode == 0
+                })
+                
+                return result.returncode == 0
+                
+            finally:
+                # 清理临时文件
                 try:
-                    while True:
-                        line = pipe.readline()
-                        if not line:
-                            break
-                        q.put(('stdout', line.rstrip()))
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
                 except:
                     pass
             
-            def read_error(pipe, q):
-                try:
-                    while True:
-                        line = pipe.readline()
-                        if not line:
-                            break
-                        q.put(('stderr', line.rstrip()))
-                except:
-                    pass
-            
-            output_queue = queue.Queue()
-            stdout_thread = threading.Thread(target=read_output, args=(process.stdout, output_queue))
-            stderr_thread = threading.Thread(target=read_error, args=(process.stderr, output_queue))
-            
-            stdout_thread.daemon = True
-            stderr_thread.daemon = True
-            stdout_thread.start()
-            stderr_thread.start()
-            
-            # 收集输出
-            print("📨 Claude Code响应:")
-            print("-" * 50)
-            
-            response_lines = []
-            timeout = 10  # 10秒超时
-            start_time = time.time()
-            
-            while time.time() - start_time < timeout:
-                try:
-                    msg_type, line = output_queue.get(timeout=1)
-                    print(line)
-                    response_lines.append(line)
-                    
-                    # 如果看到典型的Claude Code结束标志，提前结束
-                    if "🤖" in line or line.strip() == "" and len(response_lines) > 1:
-                        break
-                        
-                except queue.Empty:
-                    if not stdout_thread.is_alive() and not stderr_thread.is_alive():
-                        break
-                    continue
-            
-            print("-" * 50)
-            
-            # 记录命令历史
-            self.command_history.append({
-                'timestamp': datetime.now(),
-                'command': command,
-                'response_lines': len(response_lines)
-            })
-            
-            # 清理进程
-            try:
-                process.stdin.close()
-                process.terminate()
-                process.wait(timeout=3)
-            except:
-                try:
-                    process.kill()
-                except:
-                    pass
-            
-            return True
-            
+        except subprocess.TimeoutExpired:
+            print("   [超时] Claude响应超时")
+            return False
         except Exception as e:
-            print(f"❌ 发送到Claude Code失败: {e}")
+            print(f"   [NO] 发送到Claude Code失败: {e}")
             return False
             
     def run_voice_command_loop(self):
         """运行语音命令循环"""
-        print("✅ 语音命令桥接器已就绪")
-        print("\n🎤 语音命令模式:")
+        print("[OK] 语音命令桥接器已就绪")
+        print()
+        print("语音命令模式:")
         print("  输入 'r' 开始录音")
         print("  输入 'history' 查看命令历史")  
+        print("  输入 'test' 测试Claude连接")
         print("  输入 'quit' 退出")
         
         while True:
             try:
-                user_input = input("\n> ").strip().lower()
+                user_input = input("\\n> ").strip().lower()
                 
                 if user_input == 'quit':
                     break
@@ -360,43 +310,51 @@ class VoiceToClaudeCommand:
                         text, confidence = self.transcribe_audio(frames, rate, channels, format, sample_width)
                         
                         if text and len(text) > 1 and confidence > 0.3:
-                            print(f"\n💬 识别结果: '{text}' (置信度: {confidence:.2f})")
+                            print(f"\\n[识别] 结果: '{text}' (置信度: {confidence:.2f})")
                             
                             # 确认是否发送
                             confirm = input("是否发送到Claude Code? (y/n): ").strip().lower()
                             if confirm in ['y', 'yes', '是', '']:
                                 self.send_to_claude_code(text)
                             else:
-                                print("❌ 已取消发送")
+                                print("[取消] 已取消发送")
                         else:
-                            print("❌ 识别质量较低或为空，请重试")
+                            print("[NO] 识别质量较低或为空，请重试")
                             print("建议: 在安静环境中，清晰地说出完整命令")
                     
                 elif user_input == 'history':
                     # 显示命令历史
                     if self.command_history:
-                        print("\n📋 命令历史:")
+                        print("\\n[历史] 命令历史:")
                         for i, cmd in enumerate(self.command_history[-5:], 1):
                             time_str = cmd['timestamp'].strftime('%H:%M:%S')
-                            print(f"  {i}. [{time_str}] {cmd['command']} ({cmd['response_lines']}行响应)")
+                            status = "[成功]" if cmd['success'] else "[失败]"
+                            print(f"  {i}. [{time_str}] {status} {cmd['command']} ({cmd['response_lines']}行响应)")
                     else:
-                        print("📋 暂无命令历史")
+                        print("[历史] 暂无命令历史")
                         
+                elif user_input == 'test':
+                    # 测试Claude连接
+                    print("\\n[测试] Claude Code连接...")
+                    test_cmd = "help"
+                    self.send_to_claude_code(test_cmd)
+                    
                 elif user_input == 'help':
-                    print("\n📖 可用命令:")
+                    print("\\n[帮助] 可用命令:")
                     print("  r        - 开始录音并识别语音命令")
                     print("  history  - 查看最近的命令历史")
+                    print("  test     - 测试Claude Code连接")
                     print("  help     - 显示此帮助信息")
                     print("  quit     - 退出程序")
                     
                 elif user_input != '':
-                    print("❓ 未知命令，输入 'help' 查看可用命令")
+                    print("[提示] 未知命令，输入 'help' 查看可用命令")
                     
             except KeyboardInterrupt:
-                print("\n\n👋 程序被中断")
+                print("\\n\\n[中断] 程序被中断")
                 break
             except Exception as e:
-                print(f"❌ 程序错误: {e}")
+                print(f"[错误] 程序错误: {e}")
         
     async def run(self):
         """主运行函数"""
@@ -404,18 +362,18 @@ class VoiceToClaudeCommand:
         
         # 检查依赖
         if not self.check_dependencies():
-            print("\n❌ 依赖检查失败，请安装缺失的组件")
+            print("\\n[NO] 依赖检查失败，请安装缺失的组件")
             return
             
         # 初始化Whisper
         if not self.init_whisper():
-            print("\n❌ 语音识别初始化失败")
+            print("\\n[NO] 语音识别初始化失败")
             return
             
         # 运行主循环
         self.run_voice_command_loop()
         
-        print("\n👋 感谢使用语音到Claude Code命令桥接器!")
+        print("\\n[完成] 感谢使用语音到Claude Code命令桥接器!")
 
 
 async def main():
@@ -428,7 +386,7 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("\n程序退出")
+        print("\\n程序退出")
     except Exception as e:
         print(f"启动错误: {e}")
         import traceback
