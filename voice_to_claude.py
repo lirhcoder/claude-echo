@@ -77,14 +77,24 @@ class VoiceToClaudeCommand:
             if result.returncode == 0:
                 print("   ✅ Claude Code CLI - 已安装")
                 return True
-            else:
-                print("   ❌ Claude Code CLI - 未找到")
-                print("请确保Claude Code CLI已安装并在PATH中")
-                return False
         except (subprocess.TimeoutExpired, FileNotFoundError):
-            print("   ❌ Claude Code CLI - 未找到")
-            print("请确保Claude Code CLI已安装并在PATH中")
-            return False
+            pass
+            
+        # 尝试模拟版本
+        try:
+            mock_path = Path(__file__).parent / "claude_mock.py"
+            if mock_path.exists():
+                result = subprocess.run([sys.executable, str(mock_path), '--version'], 
+                                      capture_output=True, text=True, timeout=5)
+                if result.returncode == 0:
+                    print("   ✅ Claude Code CLI (模拟版) - 可用于测试")
+                    return True
+        except Exception:
+            pass
+            
+        print("   ❌ Claude Code CLI - 未找到")
+        print("请确保Claude Code CLI已安装或使用模拟版本测试")
+        return False
             
     def init_whisper(self):
         """初始化Whisper模型"""
@@ -203,9 +213,23 @@ class VoiceToClaudeCommand:
         try:
             print(f"📤 发送命令到Claude Code: '{command}'")
             
+            # 优先尝试真实的Claude CLI
+            claude_cmd = ['claude']
+            try:
+                subprocess.run(['claude', '--version'], capture_output=True, timeout=2)
+            except (subprocess.TimeoutExpired, FileNotFoundError):
+                # 使用模拟版本
+                mock_path = Path(__file__).parent / "claude_mock.py"
+                if mock_path.exists():
+                    claude_cmd = [sys.executable, str(mock_path)]
+                    print("   💡 使用模拟版本进行测试")
+                else:
+                    print("   ❌ Claude CLI和模拟版本都不可用")
+                    return False
+            
             # 启动Claude Code进程并发送命令
             process = subprocess.Popen(
-                ['claude'],
+                claude_cmd,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
