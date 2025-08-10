@@ -46,9 +46,14 @@ class RealVoiceTesting:
             # 1. 加载真实语音配置
             self.config_manager = ConfigManager(
                 config_dir="config",
-                config_file="real_voice_config.yaml"
+                environment="voice_testing"
             )
             await self.config_manager.initialize()
+            
+            # 加载特定的语音配置文件
+            voice_config_path = Path("config/real_voice_config.yaml")
+            if voice_config_path.exists():
+                await self.config_manager.load_config_file(voice_config_path)
             logger.success("✅ 配置管理器初始化完成")
             
             # 2. 初始化事件系统

@@ -40,13 +40,13 @@ echo ============================================
 echo  语音测试环境已就绪
 echo ============================================
 echo.
-echo 使用指南：
-echo  1. 测试指南：VOICE_TESTING_GUIDE.md
+echo 使用指南:
+echo  1. 测试指南: VOICE_TESTING_GUIDE.md
 echo  2. 说 "你好Claude" 或 "Hello Claude" 开始
 echo  3. 按 Ctrl+C 退出测试
 echo.
 echo 正在启动...
-python start_voice_testing.py
+python simple_voice_test.py
 
 echo.
 echo 语音测试会话结束
