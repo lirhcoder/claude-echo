@@ -158,8 +158,8 @@ class ClaudeSessionBridge:
         advanced_frame = ttk.LabelFrame(parent, text="高级设置", padding="10")
         advanced_frame.pack(fill=tk.X)
         
-        # 自动发送语音结果
-        self.auto_send_voice = tk.BooleanVar(value=True)
+        # 自动发送语音结果 - 改为默认关闭，让用户有机会编辑
+        self.auto_send_voice = tk.BooleanVar(value=False)
         ttk.Checkbutton(advanced_frame, text="自动发送语音识别结果",
                        variable=self.auto_send_voice).pack(anchor=tk.W)
         
@@ -438,12 +438,15 @@ class ClaudeSessionBridge:
                     voice_msg = f"{text} (置信度: {avg_confidence:.2f})"
                     self.add_chat_message("语音输入", voice_msg, "voice")
                     
+                    # 总是先将文本放入输入框，让用户有机会编辑
+                    self.input_text.delete("1.0", tk.END)
+                    self.input_text.insert("1.0", text)
+                    
                     if self.auto_send_voice.get():
                         self.send_command(text)
                     else:
-                        # 将文本放入输入框
-                        self.input_text.delete("1.0", tk.END)
-                        self.input_text.insert("1.0", text)
+                        # 提示用户可以编辑后发送
+                        self.status_var.set("语音识别完成，请检查后发送")
                 else:
                     self.add_chat_message("系统", f"语音识别质量较低: '{text}' (置信度: {avg_confidence:.2f})", "error")
                     
@@ -484,7 +487,8 @@ class ClaudeSessionBridge:
             
             # 处理响应
             if result.stdout:
-                response = result.stdout.strip()
+                # 保持换行符，不要用strip()移除所有格式
+                response = result.stdout.rstrip()
                 self.add_chat_message("Claude", response, "assistant")
                 self.connection_status.config(text="通信正常", fg="green")
             else:
@@ -518,8 +522,8 @@ class ClaudeSessionBridge:
         header = f"[{timestamp}] {sender}: "
         self.chat_display.insert(tk.END, header, msg_type)
         
-        # 添加消息内容
-        self.chat_display.insert(tk.END, f"{message}\\n\\n")
+        # 添加消息内容，保持原有换行格式
+        self.chat_display.insert(tk.END, f"{message}\n\n")
         
         self.chat_display.config(state=tk.DISABLED)
         self.chat_display.see(tk.END)
