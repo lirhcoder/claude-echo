@@ -12,7 +12,10 @@
       "Bash(git push:*)",
       "Bash(git config:*)",
       "Bash(git pull:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(call:*)",
+      "Bash(pip uninstall:*)",
+      "Bash(set PYTHONPATH=src)"
     ],
     "deny": []
   }
