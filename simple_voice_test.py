@@ -231,11 +231,12 @@ def interactive_voice_test():
                 # 安全地清理临时文件
                 try:
                     import time
-                    time.sleep(0.5)  # 等待文件释放
-                    os.unlink(tmp_file.name)
+                    time.sleep(1.0)  # 增加等待时间
+                    if os.path.exists(tmp_file.name):
+                        os.unlink(tmp_file.name)
                 except Exception as e:
-                    print(f"[警告] 清理临时文件失败: {e}")
-                    # 不影响继续测试
+                    # 静默处理，不显示错误信息
+                    pass
         
         audio.terminate()
         print("\n语音测试结束")
