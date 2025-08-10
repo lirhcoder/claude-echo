@@ -101,12 +101,19 @@ def interactive_voice_test():
         print("加载语音识别模型...")
         model = whisper.load_model("base")
         
-        # 音频参数
+        # 音频参数 - 优化录音质量
         CHUNK = 1024
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
-        RATE = 16000
+        RATE = 16000  # Whisper推荐采样率
         RECORD_SECONDS = 5
+        
+        print("[提示] 录音质量优化提醒:")
+        print("- 确保在相对安静的环境中")
+        print("- 距离麦克风20-30cm") 
+        print("- 说话声音清晰、语速适中")
+        print("- 避免在录音中咳嗽或停顿过长")
+        print()
         
         audio = pyaudio.PyAudio()
         
@@ -129,6 +136,7 @@ def interactive_voice_test():
                 break
             
             print("\n[录音] 开始录音... (5秒)")
+            print("[提示] 请开始说话...")
             
             # 开始录音
             stream = audio.open(format=FORMAT,
@@ -138,15 +146,28 @@ def interactive_voice_test():
                               frames_per_buffer=CHUNK)
             
             frames = []
+            max_volume = 0
             for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
                 data = stream.read(CHUNK)
                 frames.append(data)
                 
-                # 显示录音进度
+                # 检查音频音量
+                import struct
+                audio_data = struct.unpack(f"{CHUNK}h", data)
+                volume = max(abs(x) for x in audio_data)
+                max_volume = max(max_volume, volume)
+                
+                # 显示录音进度和音量
                 progress = (i + 1) * CHUNK / (RATE * RECORD_SECONDS)
-                print(f"\r录音进度: {'=' * int(progress * 20)} {progress * 100:.0f}%", end="")
+                volume_bar = '|' * min(10, volume // 1000)
+                print(f"\r录音进度: {'=' * int(progress * 20)} {progress * 100:.0f}% 音量:{volume_bar:<10}", end="")
             
-            print("\n[完成] 录音结束")
+            print(f"\n[完成] 录音结束 (最大音量: {max_volume})")
+            
+            # 检查录音质量
+            if max_volume < 1000:
+                print("[警告] 录音音量较低，可能影响识别准确率")
+                print("建议: 靠近麦克风或提高说话音量")
             
             stream.stop_stream()
             stream.close()
@@ -163,14 +184,31 @@ def interactive_voice_test():
                 # 语音识别
                 print("[识别] 正在识别语音...")
                 try:
-                    result = model.transcribe(tmp_file.name, language="zh")
+                    # 使用更好的参数进行识别
+                    result = model.transcribe(
+                        tmp_file.name, 
+                        language="zh",  # 指定中文
+                        fp16=False,     # 避免FP16警告
+                        verbose=False,  # 减少输出
+                        temperature=0.0,  # 更稳定的结果
+                        no_speech_threshold=0.6,  # 调整静音阈值
+                        logprob_threshold=-1.0,   # 改善识别质量
+                        compression_ratio_threshold=2.4
+                    )
                     text = result["text"].strip()
-                    confidence = result.get("segments", [{}])[0].get("confidence", 0.0) if result.get("segments") else 0.0
+                    
+                    # 计算平均置信度
+                    if result.get("segments"):
+                        confidences = [seg.get("no_speech_prob", 1.0) for seg in result["segments"]]
+                        avg_confidence = 1.0 - sum(confidences) / len(confidences) if confidences else 0.0
+                    else:
+                        avg_confidence = 0.0
                     
                     print(f"\n识别结果: '{text}'")
-                    print(f"置信度: {confidence:.2f}")
+                    print(f"置信度: {avg_confidence:.2f}")
                     
-                    if text:
+                    # 检查是否是有效的识别结果
+                    if text and len(text) > 1 and avg_confidence > 0.3:
                         # 简单的命令响应
                         response = process_voice_command(text)
                         print(f"系统响应: {response}")
@@ -184,13 +222,20 @@ def interactive_voice_test():
                         except:
                             pass
                     else:
-                        print("未识别到语音内容，请重试")
+                        print("语音识别质量较低或为空，请在安静环境中重试")
+                        print("建议: 1) 距离麦克风近一些 2) 说话清晰一些 3) 减少背景噪音")
                         
                 except Exception as e:
                     print(f"识别失败: {e}")
                 
-                # 清理临时文件
-                os.unlink(tmp_file.name)
+                # 安全地清理临时文件
+                try:
+                    import time
+                    time.sleep(0.5)  # 等待文件释放
+                    os.unlink(tmp_file.name)
+                except Exception as e:
+                    print(f"[警告] 清理临时文件失败: {e}")
+                    # 不影响继续测试
         
         audio.terminate()
         print("\n语音测试结束")
