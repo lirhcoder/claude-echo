@@ -146,12 +146,58 @@ class VoiceToClaudeCommand:
                 volume = max(abs(x) for x in audio_data)
                 max_volume = max(max_volume, volume)
                 
-                # 显示进度
-                progress = (i + 1) / (int(RATE / CHUNK * duration))
-                volume_bar = '|' * min(10, volume // 1000)
-                print(f"\\r[录音] 进度: {'=' * int(progress * 20)} {progress * 100:.0f}% 音量:{volume_bar:<10}", end="")
+                # 显示进度 (每0.5秒更新一次，避免混乱)
+                if i % 8 == 0:  # 每8次循环显示一次 (约0.5秒)
+                    progress = (i + 1) / (int(RATE / CHUNK * duration))
+                    volume_indicator = "[有声]" if volume > 1000 else "[静音]"
+                    print(f"   录音进度: {progress * 100:.0f}% {volume_indicator}")
             
             print(f"\\n[完成] 录音结束 (最大音量: {max_volume})")
+            
+            stream.stop_stream()
+            stream.close()
+            audio.terminate()
+            
+            return frames, RATE, CHANNELS, FORMAT, audio.get_sample_size(FORMAT)
+            
+        except Exception as e:
+            print(f"[NO] 录音失败: {e}")
+            return None
+            
+    def record_audio_quiet(self, duration=5):
+        """简洁模式录音功能"""
+        try:
+            import pyaudio
+            
+            # 音频参数
+            CHUNK = 1024
+            FORMAT = pyaudio.paInt16
+            CHANNELS = 1
+            RATE = 16000
+            
+            audio = pyaudio.PyAudio()
+            
+            # 开始录音
+            stream = audio.open(format=FORMAT,
+                              channels=CHANNELS,
+                              rate=RATE,
+                              input=True,
+                              frames_per_buffer=CHUNK)
+            
+            frames = []
+            max_volume = 0
+            
+            for i in range(0, int(RATE / CHUNK * duration)):
+                data = stream.read(CHUNK)
+                frames.append(data)
+                
+                # 只检测音量，不显示进度
+                import struct
+                audio_data = struct.unpack(f"{CHUNK}h", data)
+                volume = max(abs(x) for x in audio_data)
+                max_volume = max(max_volume, volume)
+            
+            print("[完成] 录音结束")
             
             stream.stop_stream()
             stream.close()
@@ -177,14 +223,18 @@ class VoiceToClaudeCommand:
                 
                 print("[识别] 正在识别语音...")
                 
-                # 使用Whisper识别
+                # 使用Whisper识别，优化参数提高准确率
                 result = self.model.transcribe(
                     tmp_file.name,
-                    language="zh",
+                    language="zh",  # 指定中文
                     fp16=False,
                     verbose=False,
-                    temperature=0.0,
-                    no_speech_threshold=0.6
+                    temperature=0.0,  # 更稳定的结果
+                    no_speech_threshold=0.4,  # 降低静音阈值
+                    logprob_threshold=-1.0,   # 提高识别质量
+                    compression_ratio_threshold=2.4,
+                    condition_on_previous_text=False,  # 不依赖前文
+                    initial_prompt="这是一个编程相关的语音命令"  # 给出上下文提示
                 )
                 
                 text = result["text"].strip()
@@ -293,7 +343,11 @@ class VoiceToClaudeCommand:
         print("  输入 'r' 开始录音")
         print("  输入 'history' 查看命令历史")  
         print("  输入 'test' 测试Claude连接")
+        print("  输入 'quiet' 切换简洁模式")
         print("  输入 'quit' 退出")
+        
+        # 简洁模式标志
+        quiet_mode = False
         
         while True:
             try:
@@ -304,7 +358,13 @@ class VoiceToClaudeCommand:
                     
                 elif user_input == 'r':
                     # 录音并识别
-                    audio_data = self.record_audio(5)
+                    if not quiet_mode:
+                        audio_data = self.record_audio(5)
+                    else:
+                        # 简洁模式：最小输出
+                        print("[录音] 5秒录音开始...")
+                        audio_data = self.record_audio_quiet(5)
+                    
                     if audio_data:
                         frames, rate, channels, format, sample_width = audio_data
                         text, confidence = self.transcribe_audio(frames, rate, channels, format, sample_width)
@@ -321,6 +381,12 @@ class VoiceToClaudeCommand:
                         else:
                             print("[NO] 识别质量较低或为空，请重试")
                             print("建议: 在安静环境中，清晰地说出完整命令")
+                            
+                elif user_input == 'quiet':
+                    # 切换简洁模式
+                    quiet_mode = not quiet_mode
+                    mode_str = "开启" if quiet_mode else "关闭"
+                    print(f"[设置] 简洁模式已{mode_str}")
                     
                 elif user_input == 'history':
                     # 显示命令历史
@@ -344,8 +410,15 @@ class VoiceToClaudeCommand:
                     print("  r        - 开始录音并识别语音命令")
                     print("  history  - 查看最近的命令历史")
                     print("  test     - 测试Claude Code连接")
+                    print("  quiet    - 切换简洁模式 (减少录音时的输出)")
                     print("  help     - 显示此帮助信息")
                     print("  quit     - 退出程序")
+                    print()
+                    print("语音识别小技巧:")
+                    print("  - 在安静环境中录音")
+                    print("  - 说话清晰，语速适中")
+                    print("  - 使用编程相关的术语")
+                    print("  - 如识别不准确，可开启简洁模式减少干扰")
                     
                 elif user_input != '':
                     print("[提示] 未知命令，输入 'help' 查看可用命令")
